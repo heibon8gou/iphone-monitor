@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPhone Price Comparison | 最安値チェッカー</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-800 min-h-screen p-4 md:p-8">
+
+    <div id="app" class="max-w-7xl mx-auto">
+
+        <!-- Header -->
+        <header class="mb-8 text-center md:text-left">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">iPhone Price Comparison</h1>
+            <p class="text-sm text-gray-500">
+                Updated at: <span id="updated-at" class="font-medium text-gray-700">Loading...</span>
+            </p>
+        </header>
+
+        <!-- Controls -->
+        <div class="bg-white p-4 rounded-lg shadow mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+
+            <!-- Left: Filters -->
+            <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                <!-- Carriers -->
+                <div class="flex items-center gap-2">
+                    <label class="font-bold text-gray-700">Display:</label>
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" class="filter-carrier form-checkbox h-5 w-5 text-blue-600"
+                            value="Rakuten" checked>
+                        <span class="ml-2 text-gray-700">Rakuten</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" class="filter-carrier form-checkbox h-5 w-5 text-green-600" value="ahamo"
+                            checked>
+                        <span class="ml-2 text-gray-700">ahamo</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" class="filter-carrier form-checkbox h-5 w-5 text-pink-600"
+                            value="UQ mobile" checked>
+                        <span class="ml-2 text-gray-700">UQ</span>
+                    </label>
+                </div>
+
+                <!-- Vertical Divider (Desktop) -->
+                <div class="hidden md:block w-px h-8 bg-gray-300 mx-2"></div>
+
+                <!-- Dropdowns -->
+                <div class="flex flex-wrap gap-2">
+                    <select id="filter-model"
+                        class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                        <option value="All">All Models</option>
+                    </select>
+                    <select id="filter-storage"
+                        class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                        <option value="All">All Storage</option>
+                    </select>
+                    <select id="filter-color"
+                        class="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                        <option value="All">All Colors</option>
+                    </select>
+                    <label
+                        class="inline-flex items-center bg-gray-50 border border-gray-300 rounded px-3 py-2 cursor-pointer hover:bg-gray-100">
+                        <input type="checkbox" id="filter-stock" class="form-checkbox h-4 w-4 text-blue-600">
+                        <span class="ml-2 text-gray-700 text-sm font-medium">In Stock Only</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Right: Sort -->
+            <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                <label for="sort-select" class="font-bold text-gray-700">Sort:</label>
+                <select id="sort-select"
+                    class="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500">
+                    <option value="price_asc">Price: Low to High</option>
+                    <option value="model_asc">Model Name</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message"
+            class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Error!</strong>
+            <span class="block sm:inline" id="error-text">Failed to load data.</span>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="text-center py-10">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p class="mt-4 text-gray-500">Loading prices...</p>
+        </div>
+
+        <!-- Table (Desktop) / Cards (Mobile) -->
+        <div id="product-container" class="hidden">
+            <div class="overflow-x-auto bg-white rounded-lg shadow">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-100 hidden md:table-header-group">
+                        <tr>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Model</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Storage</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Carrier</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Gross
+                                Price<br><span class="text-gray-400 font-normal">(定価)</span></th>
+                            <!-- Buyout omitted to save space, or show smaller? Let's keep it but condensed -->
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Buyout
+                                (Effective)<br><span class="text-gray-400 font-normal">(一括実質)</span></th>
+                            <th
+                                class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right text-green-600">
+                                Points<br><span class="text-gray-400 font-normal">(還元)</span></th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
+                                Effective Rent<br><span class="text-gray-400 font-normal">(実質負担)</span></th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Action
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="product-list" class="divide-y divide-gray-200 block md:table-row-group">
+                        <!-- Items injected here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- No Results -->
+        <div id="no-results" class="hidden text-center py-10 text-gray-500">
+            No products match your filters.
+        </div>
+
+    </div>
+
+    <script>
+        // State
+        let allData = [];
+        let carriers = ['Rakuten', 'ahamo', 'UQ mobile'];
+        let selectedModel = 'All';
+        let selectedStorage = 'All';
+        let selectedColor = 'All';
+        let filterStock = false;
+        let sortBy = 'price_asc';
+
+        // DOM Elements
+        const updatedAtEl = document.getElementById('updated-at');
+        const errorMessageEl = document.getElementById('error-message');
+        const errorTextEl = document.getElementById('error-text');
+        const loadingEl = document.getElementById('loading');
+        const productContainerEl = document.getElementById('product-container');
+        const productListEl = document.getElementById('product-list');
+        const noResultsEl = document.getElementById('no-results');
+        const sortSelect = document.getElementById('sort-select');
+        const carrierCheckboxes = document.querySelectorAll('.filter-carrier');
+        const filterModel = document.getElementById('filter-model');
+        const filterStorage = document.getElementById('filter-storage');
+        const filterColor = document.getElementById('filter-color');
+        const filterStockCheckbox = document.getElementById('filter-stock');
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchData();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            sortSelect.addEventListener('change', (e) => {
+                sortBy = e.target.value;
+                render();
+            });
+
+            carrierCheckboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                    carriers = Array.from(carrierCheckboxes)
+                        .filter(c => c.checked)
+                        .map(c => c.value);
+                    render();
+                });
+            });
+
+            filterModel.addEventListener('change', (e) => {
+                selectedModel = e.target.value;
+                render();
+            });
+
+            filterStorage.addEventListener('change', (e) => {
+                selectedStorage = e.target.value;
+                render();
+            });
+
+            filterColor.addEventListener('change', (e) => {
+                selectedColor = e.target.value;
+                render();
+            });
+
+            filterStockCheckbox.addEventListener('change', (e) => {
+                filterStock = e.target.checked;
+                render();
+            });
+        }
+
+        async function fetchData() {
+            try {
+                const response = await fetch('./data.json');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+
+                updatedAtEl.textContent = data.updated_at || 'Unknown';
+                allData = data.items;
+
+                populateFilters(allData);
+                markLowestPrices(allData);
+
+                loadingEl.classList.add('hidden');
+                productContainerEl.classList.remove('hidden');
+                render();
+
+            } catch (err) {
+                console.error(err);
+                loadingEl.classList.add('hidden');
+                errorMessageEl.classList.remove('hidden');
+                errorTextEl.textContent = err.message + ". Please try running main.py first.";
+            }
+        }
+
+        function populateFilters(items) {
+            // Models
+            const models = [...new Set(items.map(i => i.model))].sort();
+            filterModel.innerHTML = '<option value="All">All Models</option>';
+            models.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m;
+                filterModel.appendChild(opt);
+            });
+
+            // Storage
+            // Sort logic for storage: 64GB < 128GB < 256GB < 512GB < 1TB
+            const storages = [...new Set(items.map(i => i.storage))];
+            storages.sort((a, b) => {
+                const parseStorage = (s) => {
+                    if (s.includes('TB')) return parseInt(s) * 1024;
+                    return parseInt(s) || 9999;
+                };
+                return parseStorage(a) - parseStorage(b);
+            });
+
+            filterStorage.innerHTML = '<option value="All">All Storage</option>';
+            storages.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s;
+                filterStorage.appendChild(opt);
+            });
+
+            // Colors
+            // Collect all unique colors from variants
+            const colorSet = new Set();
+            items.forEach(item => {
+                if (item.variants) {
+                    item.variants.forEach(v => {
+                        if (v.color) colorSet.add(v.color);
+                    });
+                }
+            });
+            const colors = [...colorSet].sort();
+            filterColor.innerHTML = '<option value="All">All Colors</option>';
+            colors.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                filterColor.appendChild(opt);
+            });
+        }
+
+        function markLowestPrices(items) {
+            // Group by Model + Storage
+            const groups = {};
+            items.forEach(item => {
+                const key = `${item.model}-${item.storage}`;
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(item);
+            });
+
+            // Find min price in each group (Effective Rent)
+            Object.values(groups).forEach(group => {
+                if (group.length === 0) return;
+                const minPrice = Math.min(...group.map(i => i.price_effective_rent));
+                group.forEach(item => {
+                    item.isLowest = (item.price_effective_rent === minPrice);
+                });
+            });
+        }
+
+        function render() {
+            // Filter
+            let filtered = allData.filter(item => {
+                // Carrier
+                if (!carriers.includes(item.carrier)) return false;
+                // Model
+                if (selectedModel !== 'All' && item.model !== selectedModel) return false;
+                // Storage
+                if (selectedStorage !== 'All' && item.storage !== selectedStorage) return false;
+
+                // Color & Stock (Complex Logic)
+                const variants = item.variants || [];
+
+                // If Color is selected
+                if (selectedColor !== 'All') {
+                    // Item must have this color
+                    // AND if Stock is checked, that specific color must be in stock
+                    const colorVariant = variants.find(v => v.color === selectedColor);
+                    if (!colorVariant) return false; // This items doesnt have the color
+
+                    if (filterStock) {
+                        if (!colorVariant.stock_available) return false;
+                    }
+                } else {
+                    // Color is All
+                    if (filterStock) {
+                        // Must have AT LEAST ONE variant in stock
+                        // If variants is empty (ahamo), do we show?
+                        // If strict "In Stock", we hide empty variants.
+                        if (variants.length === 0) return false;
+
+                        const hasStock = variants.some(v => v.stock_available);
+                        if (!hasStock) return false;
+                    }
+                }
+
+                return true;
+            });
+
+            // Sort
+            filtered.sort((a, b) => {
+                // Default sort by Effective Rent
+                const priceA = a.price_effective_rent || 999999;
+                const priceB = b.price_effective_rent || 999999;
+
+                if (sortBy === 'price_asc') {
+                    return priceA - priceB;
+                } else if (sortBy === 'model_asc') {
+                    if (a.model < b.model) return -1;
+                    if (a.model > b.model) return 1;
+                    // Secondary sort by storage
+                    const storageA = parseInt(a.storage) || 0;
+                    const storageB = parseInt(b.storage) || 0;
+                    return storageA - storageB;
+                }
+                return 0;
+            });
+
+            // Render
+            productListEl.innerHTML = '';
+
+            if (filtered.length === 0) {
+                productContainerEl.classList.add('hidden');
+                noResultsEl.classList.remove('hidden');
+                return;
+            } else {
+                productContainerEl.classList.remove('hidden');
+                noResultsEl.classList.add('hidden');
+            }
+
+            filtered.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = `block md:table-row bg-white hover:bg-gray-50 transition-colors ${item.isLowest ? 'border-l-4 border-l-yellow-400 md:border-l-0' : ''}`;
+
+                // Styling helpers
+                const isLowestClass = item.isLowest ? 'text-red-600 font-bold' : 'text-gray-900';
+                const lowestBadge = item.isLowest ? `<span class="inline-block md:hidden ml-2 px-2 py-0.5 rounded text-xs font-semibold bg-yellow-100 text-yellow-800">Best Price</span>` : '';
+                const lowestBadgeDesktop = item.isLowest ? `<span class="hidden md:inline-block ml-2 px-2 py-0.5 rounded text-xs font-semibold bg-yellow-100 text-yellow-800">No.1</span>` : '';
+
+                const pointsDisplay = item.points_awarded > 0 ? `<span class="text-green-600 font-medium">-${item.points_awarded.toLocaleString()} pts</span>` : '<span class="text-gray-300">-</span>';
+
+                tr.innerHTML = `
+                    <td class="p-4 block md:table-cell" data-label="Model">
+                        <span class="md:hidden font-bold text-gray-500 w-24 inline-block">Model:</span>
+                        <span class="font-medium text-lg md:text-base">${item.model}</span>
+                    </td>
+                    <td class="p-4 block md:table-cell" data-label="Storage">
+                        <span class="md:hidden font-bold text-gray-500 w-24 inline-block">Storage:</span>
+                        ${item.storage}
+                    </td>
+                    <td class="p-4 block md:table-cell" data-label="Carrier">
+                        <span class="md:hidden font-bold text-gray-500 w-24 inline-block">Carrier:</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCarrierColor(item.carrier)}">
+                            ${item.carrier}
+                        </span>
+                    </td>
+                    <td class="p-4 block md:table-cell text-left md:text-right" data-label="Gross Price">
+                        <span class="md:hidden font-bold text-gray-500 w-24 inline-block">Gross:</span>
+                        <span class="line-through text-gray-400 text-sm">¥${(item.price_gross || 0).toLocaleString()}</span>
+                    </td>
+                    <td class="p-4 block md:table-cell text-left md:text-right" data-label="Buyout (Effective)">
+                        <span class="md:hidden font-bold text-gray-500 w-24 inline-block">Buyout:</span>
+                        <span class="text-gray-700 font-medium">¥${(item.price_effective_buyout || 0).toLocaleString()}</span>
+                    </td>
+                    <td class="p-4 block md:table-cell text-left md:text-right" data-label="Points">
+                        <span class="md:hidden font-bold text-gray-500 w-24 inline-block">Points:</span>
+                        ${pointsDisplay}
+                    </td>
+                    <td class="p-4 block md:table-cell text-left md:text-right" data-label="Rent Price">
+                        <span class="md:hidden font-bold text-gray-500 w-24 inline-block">Rent:</span>
+                        <span class="${isLowestClass} text-lg">¥${(item.price_effective_rent || 0).toLocaleString()}</span>
+                        ${lowestBadge} ${lowestBadgeDesktop}
+                        ${item.program_exemption > 0 ? '<br><span class="text-xs text-green-600">Return Program</span>' : ''}
+                    </td>
+                    <td class="p-4 block md:table-cell text-center" data-label="Action">
+                        <a href="${item.url}" target="_blank" class="inline-block w-full md:w-auto text-center px-4 py-2 border border-blue-600 rounded text-blue-600 hover:bg-blue-50 text-sm font-medium transition-colors">
+                            Official Site
+                        </a>
+                    </td>
+                `;
+                productListEl.appendChild(tr);
+            });
+        }
+
+        function getCarrierColor(carrier) {
+            if (carrier === 'Rakuten') return 'bg-pink-100 text-pink-800';
+            if (carrier === 'ahamo') return 'bg-green-100 text-green-800';
+            if (carrier === 'UQ mobile') return 'bg-indigo-100 text-indigo-800';
+            return 'bg-gray-100 text-gray-800';
+        }
+    </script>
+</body>
+
+</html>
