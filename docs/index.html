@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iPhone Price Comparison | 最安値チェッカー</title>
+    <title>iPhone最安値チェッカー | 価格比較</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -20,9 +20,9 @@
 
         <!-- Header -->
         <header class="mb-8 text-center md:text-left">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">iPhone Price Comparison</h1>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">iPhone最安値チェッカー</h1>
             <p class="text-sm text-gray-500">
-                Updated at: <span id="updated-at" class="font-medium text-gray-700">Loading...</span>
+                最終更新: <span id="updated-at" class="font-medium text-gray-700">読み込み中...</span>
             </p>
         </header>
 
@@ -33,11 +33,11 @@
             <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
                 <!-- Carriers -->
                 <div class="flex items-center gap-2">
-                    <label class="font-bold text-gray-700">Display:</label>
+                    <label class="font-bold text-gray-700">表示:</label>
                     <label class="inline-flex items-center">
                         <input type="checkbox" class="filter-carrier form-checkbox h-5 w-5 text-blue-600"
                             value="Rakuten" checked>
-                        <span class="ml-2 text-gray-700">Rakuten</span>
+                        <span class="ml-2 text-gray-700">楽天モバイル</span>
                     </label>
                     <label class="inline-flex items-center">
                         <input type="checkbox" class="filter-carrier form-checkbox h-5 w-5 text-green-600" value="ahamo"
@@ -47,7 +47,7 @@
                     <label class="inline-flex items-center">
                         <input type="checkbox" class="filter-carrier form-checkbox h-5 w-5 text-pink-600"
                             value="UQ mobile" checked>
-                        <span class="ml-2 text-gray-700">UQ</span>
+                        <span class="ml-2 text-gray-700">UQ mobile</span>
                     </label>
                 </div>
 
@@ -58,31 +58,31 @@
                 <div class="flex flex-wrap gap-2">
                     <select id="filter-model"
                         class="border border-gray-300 rounded px-3 py-2 text-base md:text-sm focus:outline-none focus:border-blue-500 w-full md:w-auto">
-                        <option value="All">All Models</option>
+                        <option value="All">全モデル</option>
                     </select>
                     <select id="filter-storage"
                         class="border border-gray-300 rounded px-3 py-2 text-base md:text-sm focus:outline-none focus:border-blue-500 w-full md:w-auto">
-                        <option value="All">All Storage</option>
+                        <option value="All">全容量</option>
                     </select>
                     <select id="filter-color"
                         class="border border-gray-300 rounded px-3 py-2 text-base md:text-sm focus:outline-none focus:border-blue-500 w-full md:w-auto">
-                        <option value="All">All Colors</option>
+                        <option value="All">全カラー</option>
                     </select>
                     <label
                         class="inline-flex items-center bg-gray-50 border border-gray-300 rounded px-3 py-2 cursor-pointer hover:bg-gray-100 w-full md:w-auto justify-center md:justify-start">
                         <input type="checkbox" id="filter-stock" class="form-checkbox h-5 w-5 text-blue-600">
-                        <span class="ml-2 text-gray-700 text-sm font-medium">In Stock Only</span>
+                        <span class="ml-2 text-gray-700 text-sm font-medium">在庫ありのみ</span>
                     </label>
                 </div>
             </div>
 
             <!-- Right: Sort -->
             <div class="flex items-center gap-2 w-full md:w-auto justify-end">
-                <label for="sort-select" class="font-bold text-gray-700 whitespace-nowrap">Sort:</label>
+                <label for="sort-select" class="font-bold text-gray-700 whitespace-nowrap">並び替え:</label>
                 <select id="sort-select"
                     class="border border-gray-300 rounded px-3 py-2 text-base md:text-sm focus:outline-none focus:border-blue-500 w-full md:w-auto">
-                    <option value="price_asc">Price: Low to High</option>
-                    <option value="model_asc">Model Name</option>
+                    <option value="price_asc">実質負担が安い順</option>
+                    <option value="model_asc">モデル名順</option>
                 </select>
             </div>
         </div>
@@ -90,14 +90,14 @@
         <!-- Error Message -->
         <div id="error-message"
             class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <strong class="font-bold">Error!</strong>
-            <span class="block sm:inline" id="error-text">Failed to load data.</span>
+            <strong class="font-bold">エラー！</strong>
+            <span class="block sm:inline" id="error-text">データの読み込みに失敗しました。</span>
         </div>
 
         <!-- Loading -->
         <div id="loading" class="text-center py-10">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p class="mt-4 text-gray-500">Loading prices...</p>
+            <p class="mt-4 text-gray-500">価格データを読み込み中...</p>
         </div>
 
         <!-- Table (Desktop) / Cards (Mobile) -->
@@ -106,21 +106,18 @@
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-gray-100 hidden md:table-header-group">
                         <tr>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Model</th>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Storage</th>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Carrier</th>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Gross
-                                Price<br><span class="text-gray-400 font-normal">(定価)</span></th>
-                            <!-- Buyout omitted to save space, or show smaller? Let's keep it but condensed -->
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Buyout
-                                (Effective)<br><span class="text-gray-400 font-normal">(一括実質)</span></th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">モデル</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">容量</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">キャリア</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">定価</th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
+                                一括実質<br><span class="text-gray-400 font-normal">(購入)</span></th>
                             <th
                                 class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right text-green-600">
-                                Points<br><span class="text-gray-400 font-normal">(還元)</span></th>
+                                ポイント<br><span class="text-gray-400 font-normal">(還元)</span></th>
                             <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
-                                Effective Rent<br><span class="text-gray-400 font-normal">(実質負担)</span></th>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Action
-                            </th>
+                                実質負担額<br><span class="text-gray-400 font-normal">(レンタル)</span></th>
+                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">購入</th>
                         </tr>
                     </thead>
                     <tbody id="product-list" class="divide-y divide-gray-200 block md:table-row-group">
@@ -132,7 +129,7 @@
 
         <!-- No Results -->
         <div id="no-results" class="hidden text-center py-10 text-gray-500">
-            No products match your filters.
+            条件に一致する商品が見つかりませんでした。
         </div>
 
     </div>
@@ -210,7 +207,7 @@
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data = await response.json();
 
-                updatedAtEl.textContent = data.updated_at || 'Unknown';
+                updatedAtEl.textContent = data.updated_at || '不明';
                 allData = data.items;
 
                 populateFilters(allData);
@@ -224,14 +221,14 @@
                 console.error(err);
                 loadingEl.classList.add('hidden');
                 errorMessageEl.classList.remove('hidden');
-                errorTextEl.textContent = err.message + ". Please try running main.py first.";
+                errorTextEl.textContent = err.message + " メインスクリプトを実行してください。";
             }
         }
 
         function populateFilters(items) {
             // Models
             const models = [...new Set(items.map(i => i.model))].sort();
-            filterModel.innerHTML = '<option value="All">All Models</option>';
+            filterModel.innerHTML = '<option value="All">全モデル</option>';
             models.forEach(m => {
                 const opt = document.createElement('option');
                 opt.value = m;
@@ -250,7 +247,7 @@
                 return parseStorage(a) - parseStorage(b);
             });
 
-            filterStorage.innerHTML = '<option value="All">All Storage</option>';
+            filterStorage.innerHTML = '<option value="All">全容量</option>';
             storages.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s;
@@ -269,7 +266,7 @@
                 }
             });
             const colors = [...colorSet].sort();
-            filterColor.innerHTML = '<option value="All">All Colors</option>';
+            filterColor.innerHTML = '<option value="All">全カラー</option>';
             colors.forEach(c => {
                 const opt = document.createElement('option');
                 opt.value = c;
@@ -377,7 +374,7 @@
                 const carrierColor = getCarrierColor(item.carrier);
                 // Points
                 const ptsVal = item.points_awarded > 0 ? `-${item.points_awarded.toLocaleString()}` : '-';
-                const ptsLabel = item.points_awarded > 0 ? 'pts' : '';
+                const ptsLabel = item.points_awarded > 0 ? 'pt' : '';
 
                 // Prices
                 const grossPrice = (item.price_gross || 0).toLocaleString();
@@ -386,6 +383,8 @@
 
                 const isLowestText = item.isLowest ? 'text-red-600 font-bold' : 'text-gray-900 font-bold';
                 const lowestBadge = item.isLowest ? `<span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded font-bold ml-2">最安</span>` : '';
+                const lowestBadgeDesktop = item.isLowest ? `<span class="hidden md:inline-block ml-2 px-2 py-0.5 rounded text-xs font-semibold bg-yellow-100 text-yellow-800">No.1</span>` : '';
+
 
                 // Stock status (Summarized for card)
                 let stockStatus = '<span class="text-gray-400">-</span>';
@@ -463,12 +462,12 @@
                     <td class="hidden md:table-cell p-4 text-right">
                         <div>
                             <span class="${isLowestText} text-base">¥${rentPrice}</span>
-                            ${item.program_exemption > 0 ? '<br><span class="text-xs text-green-600">Return Program</span>' : ''}
+                            ${item.program_exemption > 0 ? '<br><span class="text-xs text-green-600">返却CP</span>' : ''}
                         </div>
                     </td>
                     <td class="hidden md:table-cell p-4 text-center">
                          <a href="${item.url}" target="_blank" class="inline-block px-4 py-2 border border-blue-600 rounded text-blue-600 hover:bg-blue-50 text-sm font-medium transition-colors">
-                            Visit
+                            公式サイトへ
                         </a>
                     </td>
                 `;
