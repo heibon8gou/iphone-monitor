@@ -63,8 +63,6 @@ async def scrape_rakuten(page):
         product_headers = await page.locator(".product-iphone-stock-Layout_Product-name").all()
         print(f"Rakuten Stock: Found {len(product_headers)} products")
         
-        # We need to find the AREA for each header. 
-        # Using XPath following-sibling to get the area div
         for header in product_headers:
             model_name = await header.text_content()
             model_name = model_name.strip()
@@ -123,16 +121,31 @@ async def scrape_rakuten(page):
 
         print(f"Rakuten Fee: Found {len(sections)} sections")
         
-        for section in sections:
+        # Define helper here
+        def extract_price(text):
+            m = re.search(r'([\d,]+)', text)
+            if m: return int(m.group(1).replace(',', ''))
+            return 0
+
+        for i, section in enumerate(sections):
             name_el = section.locator("h3, .product-name, h2")
-            if await name_el.count() == 0: continue
+            if await name_el.count() == 0:
+                print(f"  Section {i}: No header")
+                continue
             
             raw_model = await name_el.first.text_content()
             model_name = raw_model.strip()
-            if "iPhone" not in model_name: continue
+            
+            if "iPhone" not in model_name:
+                # print(f"  Skip non-iPhone: {model_name}")
+                continue
+            
+            print(f"  Processing: {model_name}")
             
             table = section.locator("table")
-            if await table.count() == 0: continue
+            if await table.count() == 0:
+                print("    No table")
+                continue
             
             headers = await table.locator("thead th").all()
             storages = []
@@ -141,63 +154,61 @@ async def scrape_rakuten(page):
                 txt = txt.strip()
                 if "GB" in txt or "TB" in txt:
                     storages.append(txt)
-            if not storages: continue
+            
+            if not storages:
+                print(f"    No storages found. Headers: {len(headers)}")
+                continue
 
             rows = await table.locator("tbody tr").all()
             price_map = {s: {"gross": 0, "program": 0, "rent": 0} for s in storages}
-            
-            def extract_price(text):
-                import re
-                m = re.search(r'([\d,]+)', text)
-                if m: return int(m.group(1).replace(',', ''))
-                return 0
             
             for row in rows:
                 th = row.locator("th")
                 if await th.count() == 0: continue
                 header_text = await th.first.text_content()
+                header_text = header_text.strip()
                 
                 tds = await row.locator("td").all()
                 if len(tds) < len(storages): continue
                 
-                # Logic A: Gross (Rakuten row)
+                # Logic A: Gross
                 if any(k in header_text for k in ["楽天モバイル", "一括価格", "現金販売価格"]):
-                    for i, td in enumerate(tds):
-                        if i >= len(storages): break
+                    for idx, td in enumerate(tds):
+                        if idx >= len(storages): break
                         txt = await td.text_content()
                         gross = extract_price(txt)
                         if gross > 0:
-                            price_map[storages[i]]["gross"] = gross
+                            price_map[storages[idx]]["gross"] = gross
                         if "48回" in txt:
                              m_inst = re.search(r'48回.*?([\d,]+)', txt)
                              if m_inst:
                                  installment = int(m_inst.group(1).replace(',', ''))
-                                 price_map[storages[i]]["program_calc"] = installment * 24
+                                 price_map[storages[idx]]["program_calc"] = installment * 24
 
                 # Logic B: Program Row
                 elif any(k in header_text for k in ["買い替え超トクプログラム", "24回分"]):
-                    for i, td in enumerate(tds):
-                        if i >= len(storages): break
+                    for idx, td in enumerate(tds):
+                        if idx >= len(storages): break
                         val = extract_price(await td.text_content())
-                        if val > 0: price_map[storages[i]]["program"] = val
+                        if val > 0: price_map[storages[idx]]["program"] = val
 
                 # Logic C: Rent Row (Priority)
                 elif any(k in header_text for k in ["実質", "キャンペーン"]):
-                    for i, td in enumerate(tds):
-                        if i >= len(storages): break
+                    for idx, td in enumerate(tds):
+                        if idx >= len(storages): break
                         val = extract_price(await td.text_content())
-                        if val > 0: price_map[storages[i]]["rent"] = val
+                        if val > 0: price_map[storages[idx]]["rent"] = val
             
+            added_count = 0
             for s in storages:
                 pm = price_map[s]
                 p_gross = pm["gross"]
                 if p_gross == 0: continue
 
-                # Determine Effective Rent
                 p_program = 0
                 if pm["program"] > 0: p_program = pm["program"]
                 elif "program_calc" in pm and pm["program_calc"] > 0: p_program = pm["program_calc"]
-                else: p_program = int(p_gross / 2) # Fallback
+                else: p_program = int(p_gross / 2)
                 
                 p_effective_rent = pm["rent"] if pm["rent"] > 0 else p_program
                 p_effective_buyout = p_gross
@@ -209,36 +220,16 @@ async def scrape_rakuten(page):
                         points_awarded = campaign_map["iPhone 16e"]
 
                 if "16e" in model_name and points_awarded < 50000:
-                     points_awarded = 52352 # Override for 16e
+                     points_awarded = 52352
 
-                # Adjust Rent for points if not already accounted for?
-                # Usually "Real Price" includes points.
-                # If we used p_program (installment based), we MUST subtract points.
-                # If we used pm["rent"] (scraped "Real" price), it MIGHT imply points used?
-                # User logic: "Effective Rent = Program price... if campaign price exists, use that".
-                # Usually campaign "Real 1 yen" = Program payment - Points.
-                # So if we scraped "Real Price", it likely is the final.
-                # But if we use "Program Payment", we need to subtract points.
-                
-                # Decision: If we used p_program (calculated), subtract points.
-                # If we used pm["rent"] (scraped), assume it's final?
-                # Rakuten "Real" usually means AFTER points.
-                
-                # However, to be safe and consistent with previous logic:
-                # previous logic was: `effective_rent = gross - exemption - points`.
-                # p_program IS (gross - exemption).
-                # So we should subtract points from p_program.
-                
-                if pm["rent"] == 0: # Check if we used fallback
+                if pm["rent"] == 0:
                      p_effective_rent = p_effective_rent - points_awarded
                 
                 if p_effective_rent < 0: p_effective_rent = 0
                 
-                # Exemption
                 program_exemption = p_gross - p_program
                 if program_exemption < 0: program_exemption = 0
                 
-                # Variants from Stock Map
                 item_variants = []
                 if model_name in stock_map and s in stock_map[model_name]:
                         item_variants = stock_map[model_name][s]
@@ -256,7 +247,10 @@ async def scrape_rakuten(page):
                     "program_exemption": program_exemption,
                     "variants": item_variants
                 })
-                print(f"    -> Added {model_name} {s} Gross:{p_gross} Rent:{p_effective_rent}")
+                added_count += 1
+            
+            if added_count == 0:
+                print(f"    Warning: No items added for {model_name}. Map: {price_map}")
 
     except Exception as e:
         print(f"Error scraping Rakuten: {e}")
@@ -504,7 +498,8 @@ async def main():
         # Launch browser (headless=False for debug if needed, but usually True)
         browser = await p.chromium.launch(headless=True)
         context = await browser.new_context(
-            user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            locale="ja-JP"
         )
         page = await context.new_page()
 

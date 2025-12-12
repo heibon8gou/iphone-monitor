@@ -19,12 +19,7 @@
     <div id="app" class="max-w-7xl mx-auto">
 
         <!-- Header -->
-        <header class="mb-8 text-center md:text-left">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">iPhone最安値チェッカー</h1>
-            <p class="text-sm text-gray-500">
-                最終更新: <span id="updated-at" class="font-medium text-gray-700">読み込み中...</span>
-            </p>
-        </header>
+        <!-- Header Removed -->
 
         <!-- Controls -->
         <div class="bg-white p-4 rounded-lg shadow mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -64,15 +59,6 @@
                         class="border border-gray-300 rounded px-3 py-2 text-base md:text-sm focus:outline-none focus:border-blue-500 w-full md:w-auto">
                         <option value="All">全容量</option>
                     </select>
-                    <select id="filter-color"
-                        class="border border-gray-300 rounded px-3 py-2 text-base md:text-sm focus:outline-none focus:border-blue-500 w-full md:w-auto">
-                        <option value="All">全カラー</option>
-                    </select>
-                    <label
-                        class="inline-flex items-center bg-gray-50 border border-gray-300 rounded px-3 py-2 cursor-pointer hover:bg-gray-100 w-full md:w-auto justify-center md:justify-start">
-                        <input type="checkbox" id="filter-stock" class="form-checkbox h-5 w-5 text-blue-600">
-                        <span class="ml-2 text-gray-700 text-sm font-medium">在庫ありのみ</span>
-                    </label>
                 </div>
             </div>
 
@@ -111,12 +97,7 @@
                             <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">キャリア</th>
                             <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">定価</th>
                             <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
-                                一括実質<br><span class="text-gray-400 font-normal">(購入)</span></th>
-                            <th
-                                class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right text-green-600">
-                                ポイント<br><span class="text-gray-400 font-normal">(還元)</span></th>
-                            <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
-                                実質負担額<br><span class="text-gray-400 font-normal">(レンタル)</span></th>
+                                キャンペーン適用後の<br><span class="font-normal">実質負担</span></th>
                             <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">購入</th>
                         </tr>
                     </thead>
@@ -132,6 +113,11 @@
             条件に一致する商品が見つかりませんでした。
         </div>
 
+        <!-- Last Updated (Footer) -->
+        <div class="mt-8 text-center text-gray-400 text-xs">
+            最終更新: <span id="updated-at" class="font-medium">読み込み中...</span>
+        </div>
+
     </div>
 
     <script>
@@ -140,8 +126,8 @@
         let carriers = ['Rakuten', 'ahamo', 'UQ mobile'];
         let selectedModel = 'All';
         let selectedStorage = 'All';
-        let selectedColor = 'All';
-        let filterStock = false;
+        // let selectedColor = 'All'; // Removed
+        // let filterStock = false; // Removed
         let sortBy = 'price_asc';
 
         // DOM Elements
@@ -156,8 +142,8 @@
         const carrierCheckboxes = document.querySelectorAll('.filter-carrier');
         const filterModel = document.getElementById('filter-model');
         const filterStorage = document.getElementById('filter-storage');
-        const filterColor = document.getElementById('filter-color');
-        const filterStockCheckbox = document.getElementById('filter-stock');
+        // const filterColor = document.getElementById('filter-color'); // Removed
+        // const filterStockCheckbox = document.getElementById('filter-stock'); // Removed
 
         // Init
         document.addEventListener('DOMContentLoaded', () => {
@@ -190,15 +176,15 @@
                 render();
             });
 
-            filterColor.addEventListener('change', (e) => {
-                selectedColor = e.target.value;
-                render();
-            });
+            // filterColor.addEventListener('change', (e) => {
+            //     selectedColor = e.target.value;
+            //     render();
+            // });
 
-            filterStockCheckbox.addEventListener('change', (e) => {
-                filterStock = e.target.checked;
-                render();
-            });
+            // filterStockCheckbox.addEventListener('change', (e) => {
+            //     filterStock = e.target.checked;
+            //     render();
+            // });
         }
 
         async function fetchData() {
@@ -255,24 +241,7 @@
                 filterStorage.appendChild(opt);
             });
 
-            // Colors
-            // Collect all unique colors from variants
-            const colorSet = new Set();
-            items.forEach(item => {
-                if (item.variants) {
-                    item.variants.forEach(v => {
-                        if (v.color) colorSet.add(v.color);
-                    });
-                }
-            });
-            const colors = [...colorSet].sort();
-            filterColor.innerHTML = '<option value="All">全カラー</option>';
-            colors.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c;
-                opt.textContent = c;
-                filterColor.appendChild(opt);
-            });
+            // Colors Removed
         }
 
         function markLowestPrices(items) {
@@ -304,31 +273,7 @@
                 // Storage
                 if (selectedStorage !== 'All' && item.storage !== selectedStorage) return false;
 
-                // Color & Stock (Complex Logic)
-                const variants = item.variants || [];
-
-                // If Color is selected
-                if (selectedColor !== 'All') {
-                    // Item must have this color
-                    // AND if Stock is checked, that specific color must be in stock
-                    const colorVariant = variants.find(v => v.color === selectedColor);
-                    if (!colorVariant) return false; // This items doesnt have the color
-
-                    if (filterStock) {
-                        if (!colorVariant.stock_available) return false;
-                    }
-                } else {
-                    // Color is All
-                    if (filterStock) {
-                        // Must have AT LEAST ONE variant in stock
-                        // If variants is empty (ahamo), do we show?
-                        // If strict "In Stock", we hide empty variants.
-                        if (variants.length === 0) return false;
-
-                        const hasStock = variants.some(v => v.stock_available);
-                        if (!hasStock) return false;
-                    }
-                }
+                // Color Filter Removed
 
                 return true;
             });
@@ -379,11 +324,11 @@
                 // Prices
                 const grossPrice = (item.price_gross || 0).toLocaleString();
                 const rentPrice = (item.price_effective_rent || 0).toLocaleString();
-                const buyoutPrice = (item.price_effective_buyout || 0).toLocaleString();
+                // const buyoutPrice = (item.price_effective_buyout || 0).toLocaleString(); // Removed from view
 
                 const isLowestText = item.isLowest ? 'text-red-600 font-bold' : 'text-gray-900 font-bold';
                 const lowestBadge = item.isLowest ? `<span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded font-bold ml-2">最安</span>` : '';
-                const lowestBadgeDesktop = item.isLowest ? `<span class="hidden md:inline-block ml-2 px-2 py-0.5 rounded text-xs font-semibold bg-yellow-100 text-yellow-800">No.1</span>` : '';
+                // const lowestBadgeDesktop = item.isLowest ? `<span class="hidden md:inline-block ml-2 px-2 py-0.5 rounded text-xs font-semibold bg-yellow-100 text-yellow-800">No.1</span>` : '';
 
 
                 // Stock status (Summarized for card)
@@ -403,7 +348,7 @@
                         <!-- Header: Carrier + Model + Storage -->
                         <div class="flex justify-between items-start mb-2">
                             <div>
-                                <span class="inline-block px-2 py-0.5 text-xs font-bold rounded mb-1 ${carrierColor}">${item.carrier}</span>
+                                <span class="inline-block px-2 py-0.5 text-xs font-bold rounded mb-1 ${carrierColor}">${getCarrierDisplayName(item.carrier)}</span>
                                 <h3 class="text-lg font-bold text-gray-900 leading-tight">
                                     ${item.model} 
                                     <span class="text-sm font-normal text-gray-500 ml-1">${item.storage}</span>
@@ -414,7 +359,7 @@
                         
                         <!-- Main Price: Effective Rent -->
                         <div class="flex items-baseline gap-2 mb-1">
-                            <span class="text-sm text-gray-500">実質負担:</span>
+                            <span class="text-sm text-gray-500">キャンペーン適用後の実質負担:</span>
                             <span class="text-2xl ${isLowestText}">¥${rentPrice}</span>
                             ${item.program_exemption > 0 ? '<span class="text-xs text-green-600 border border-green-200 px-1 rounded">返却P</span>' : ''}
                         </div>
@@ -423,15 +368,7 @@
                         <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-600 mb-4">
                             <div class="flex justify-between border-b border-gray-100 pb-1">
                                 <span>定価:</span>
-                                <span class="line-through text-gray-400">¥${grossPrice}</span>
-                            </div>
-                            <div class="flex justify-between border-b border-gray-100 pb-1">
-                                <span>一括実質:</span>
-                                <span>¥${buyoutPrice}</span>
-                            </div>
-                            <div class="flex justify-between border-b border-gray-100 pb-1">
-                                <span>ポイント:</span>
-                                <span class="text-green-600 font-medium">${ptsVal}${ptsLabel}</span>
+                                <span>¥${grossPrice}</span>
                             </div>
                              <!-- Stock -->
                              <div class="flex justify-between border-b border-gray-100 pb-1 items-center">
@@ -453,12 +390,10 @@
                     <td class="hidden md:table-cell p-4 text-gray-600">${item.storage}</td>
                     <td class="hidden md:table-cell p-4">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${carrierColor}">
-                            ${item.carrier}
+                            ${getCarrierDisplayName(item.carrier)}
                         </span>
                     </td>
-                    <td class="hidden md:table-cell p-4 text-right text-gray-400 line-through text-sm">¥${grossPrice}</td>
-                    <td class="hidden md:table-cell p-4 text-right font-medium">¥${buyoutPrice}</td>
-                    <td class="hidden md:table-cell p-4 text-right text-green-600 font-medium">${ptsVal}${ptsLabel}</td>
+                    <td class="hidden md:table-cell p-4 text-right text-gray-600 text-sm">¥${grossPrice}</td>
                     <td class="hidden md:table-cell p-4 text-right">
                         <div>
                             <span class="${isLowestText} text-base">¥${rentPrice}</span>
@@ -482,6 +417,11 @@
             if (carrier === 'ahamo') return 'bg-green-100 text-green-800';
             if (carrier === 'UQ mobile') return 'bg-indigo-100 text-indigo-800';
             return 'bg-gray-100 text-gray-800';
+        }
+
+        function getCarrierDisplayName(carrier) {
+            if (carrier === 'Rakuten') return '楽天モバイル';
+            return carrier;
         }
     </script>
 </body>
