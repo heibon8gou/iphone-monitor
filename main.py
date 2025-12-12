@@ -11,11 +11,9 @@ async def scrape_rakuten(page):
     print("Scraping Rakuten Mobile...")
     items = []
     
-    # Initialize outside try/except to avoid UnboundLocalError
+    # --- 1. Scrape Campaign Points (Phase 5) ---
     campaign_map = {} 
-    
     try:
-        # 1. Scrape Campaign Points first (Deep Dive)
         camp_url = "https://network.mobile.rakuten.co.jp/product/iphone/"
         await page.goto(camp_url, wait_until="domcontentloaded")
         await page.wait_for_timeout(3000)
@@ -39,7 +37,6 @@ async def scrape_rakuten(page):
                     elif "iphone-16" in href: target_model = "iPhone 16"
                     else: continue
                     
-                    # Optimization: Only visit if we don't have a high value yet
                     if campaign_map.get(target_model, 0) > 40000: continue
                     
                     await page.goto(href, wait_until="domcontentloaded")
@@ -53,81 +50,38 @@ async def scrape_rakuten(page):
                             print(f"  Campaign: {target_model} -> {max_pts} pts")
                 except Exception as e:
                     print(f"  Camp Error {href}: {e}")
-
     except Exception as e:
         print(f"Error scraping campaigns: {e}")
-    
-    print(f"Campaign Map: {campaign_map}")
 
-    # 2. Scrape Stock (New Phase 7)
-    # Map: Model -> Storage -> { Color: Status, ... }
+    # --- 2. Scrape Stock (Phase 7) ---
     stock_map = {}
     try:
         url_stock = "https://network.mobile.rakuten.co.jp/product/iphone/stock/"
         await page.goto(url_stock, wait_until="domcontentloaded")
         await page.wait_for_timeout(3000)
         
-        # Structure: .product-iphone-stock-Layout_Product-area (contains Product Image/Name context?)
-        # Actually name is usually in preceding h2.c-Heading_Lv2.product-iphone-stock-Layout_Product-name
-        
-        # We find all product name headers
         product_headers = await page.locator(".product-iphone-stock-Layout_Product-name").all()
         print(f"Rakuten Stock: Found {len(product_headers)} products")
         
+        # We need to find the AREA for each header. 
+        # Using XPath following-sibling to get the area div
         for header in product_headers:
             model_name = await header.text_content()
             model_name = model_name.strip()
             
-            # The product area is usually the Next Sibling of the header
-            # We can use locator("xpath=following-sibling::div[1]") or similar
-            # But let's assume simple structure
-            
-            # Scope to the Product Area following this header
-            # This is tricky in Playwright without direct sibling selector from element handle
-            # We can traverse DOM or use the order (assuming 1-to-1)
-            
-            # Let's try locating areas and headers separately and zip them?
-            pass # We will do a robust approach below
-
-        # Robust Approach: Find all Product Areas, then find the Header *inside* or *before* it?
-        # Actually the HTML dump showed:
-        # <div class="c-Heading_Lv2 ...">Apple Watch...</div>
-        # <div class="product-iphone-stock-Layout_Product-area">...</div>
-        
-        product_areas = await page.locator(".product-iphone-stock-Layout_Product-area").all()
-        # We need the names. 
-        # Let's iterate headers again and get the NEXT .product-iphone-stock-Layout_Product-area
-        
-        # XPath is reliable for "following-sibling"
-        for header in product_headers:
-            model_name = await header.text_content()
-            model_name = model_name.strip()
-            
-            # Find the area immediately following this header
-            # We construct a locator based on the header's unique text or index? 
-            # Dangerous if duplicates.
-            # Let's use the header element anchor
             area = header.locator("xpath=following-sibling::div[contains(@class, 'product-iphone-stock-Layout_Product-area')]").first
-            
-            if await area.count() == 0:
-                print(f"  No stock area for {model_name}")
-                continue
+            if await area.count() == 0: continue
                 
             if model_name not in stock_map: stock_map[model_name] = {}
             
-            # Inside Area -> Find all Color Details
-            # div.color-details
             color_details = await area.locator(".color-details").all()
-            
             for cd in color_details:
-                # Color Name: c-Heading_Lv4 (or text inside it)
                 color_header = cd.locator(".c-Heading_Lv4, h4")
                 if await color_header.count() == 0: continue
                 
                 color_text = await color_header.first.text_content()
-                color_name = color_text.strip() # e.g. "ブラックチタニウムケース" -> "Black..."
+                color_name = color_text.strip()
                 
-                # Table: .c-Table_Container
                 table = cd.locator("table")
                 if await table.count() == 0: continue
                 
@@ -136,17 +90,13 @@ async def scrape_rakuten(page):
                     cols = await row.locator("td").all()
                     if len(cols) < 2: continue
                     
-                    # Col 0: Storage (e.g. "128GB" or "Black S/M" for watch)
-                    # Col 1: Status
                     cap_text = await cols[0].text_content()
                     status_text = await cols[1].text_content()
                     
                     storage_match = re.search(r'(\d+)(GB|TB)', cap_text)
-                    if not storage_match: continue # Skip if not storage (like Watch bands)
+                    if not storage_match: continue
                     
-                    storage = storage_match.group(0) # e.g. 128GB
-                    
-                    # Status parse
+                    storage = storage_match.group(0)
                     is_in_stock = "在庫あり" in status_text or "In stock" in status_text
                     
                     if storage not in stock_map[model_name]: 
@@ -154,156 +104,168 @@ async def scrape_rakuten(page):
                     
                     stock_map[model_name][storage].append({
                         "color": color_name,
-                        "stock_text": status_text.strip()[:20], # Truncate
+                        "stock_text": status_text.strip()[:20],
                         "stock_available": is_in_stock
                     })
-            
             print(f"  Parsed stock for {model_name}: {len(stock_map[model_name])} capacities")
-
     except Exception as e:
         print(f"Error scraping Rakuten Stock: {e}")
 
-    print(f"Stock Map keys: {list(stock_map.keys())}")
+    # --- 3. Scrape Fees (New Phase 11 Logic) ---
+    try:
+        url = "https://network.mobile.rakuten.co.jp/product/iphone/fee/"
+        await page.goto(url, wait_until="domcontentloaded")
+        await page.wait_for_timeout(3000)
 
-    # 3. Scrape Fees
-    # Based on analysis: class "product-iphone-Fee_Media" contains the info
-    url = "https://network.mobile.rakuten.co.jp/product/iphone/fee/"
-    await page.goto(url, wait_until="domcontentloaded")
-    await page.wait_for_timeout(3000)
+        sections = await page.locator(".product-iphone-Fee_Media").all()
+        if len(sections) == 0:
+            sections = await page.locator("section").all()
 
-    sections = await page.locator(".product-iphone-Fee_Media").all()
-    print(f"Rakuten: Found {len(sections)} sections")
-    
-    for section in sections:
-        # 1. Model Name
-        name_el = section.locator("h3, .product-iphone-Fee_Product-name") # try broader
-        if await name_el.count() == 0:
-            print("  Skipping section with no name")
-            continue
-        model_name = await name_el.first.text_content()
-        model_name = model_name.strip()
-        print(f"  Checking section for: {model_name}")
+        print(f"Rakuten Fee: Found {len(sections)} sections")
         
-        # 2. Parse Table for Prices
-        # The table is in the same section
-        # We need to map Storage -> Price
-        table = section.locator("table.c-Table_Container")
-        if await table.count() == 0:
-            print(f"  No table found for {model_name}")
-            continue
+        for section in sections:
+            name_el = section.locator("h3, .product-name, h2")
+            if await name_el.count() == 0: continue
             
-        headers = await table.locator("thead th").all()
-        if "16e" in model_name: print(f"  {model_name} headers: {len(headers)}")
-        
-        storages = []
-        for th in headers:
-            text = await th.text_content()
-            text = text.strip()
-            if "GB" in text or "TB" in text:
-                storages.append(text)
-        
-        # Get Rakuten Prices
-        # row header has "Rakuten Mobile" or "楽天モバイル"
-        # We look for the row where th contains specific text
-        rows = await table.locator("tbody tr").all()
-        if "16e" in model_name: print(f"  {model_name} rows: {len(rows)}")
-        
-        rakuten_row = None
-        for row in rows:
-            row_header = await row.locator("th").first.text_content()
-            if "16e" in model_name: print(f"  Row Header: {row_header}")
-            if "楽天モバイル" in row_header or "Rakuten Mobile" in row_header:
-                rakuten_row = row
-                break
-        
-        if not rakuten_row:
-            print(f"  No Rakuten row found for {model_name}")
-            continue
+            raw_model = await name_el.first.text_content()
+            model_name = raw_model.strip()
+            if "iPhone" not in model_name: continue
             
-        price_cells = await rakuten_row.locator("td").all()
-        
-        # 3. Extract MNP Discount info
-        # Look for campaign text in the section or generic
-        # Rakuten often has "MNPで...ポイント" banners.
-        # For now, we extract a general MNP discount if explicit text exists, 
-        # otherwise we might need a global constant or checking the top banner.
-        # In the dump, specific MNP discount numbers weren't next to the price.
-        # We will use a placeholder or try to find "Campaign" text.
-        mnp_discount = 0 # Default
-        
-        # Check for banners in the section?
-        # Or use a known campaign value if not found.
-        # For now, let's assume 0 points unless text found.
-        
-        for i, storage in enumerate(storages):
-            if i < len(price_cells):
-                cell = price_cells[i]
-                price_text = await cell.text_content()
-                price_match = re.search(r'([\d,]+)', price_text)
-                if price_match:
-                    price_str = price_match.group(1).replace(',', '')
-                    try:
-                        # Rakuten "Fee" page usually lists Gross / Buyout price directly.
-                        price_gross = int(price_str)
-                        
-                        points_awarded = 0
-                        # 1. Look up campaign map
-                        if model_name in campaign_map:
-                            points_awarded = campaign_map[model_name]
-                        elif "16e" in model_name and "iPhone 16e" in campaign_map:
-                             points_awarded = campaign_map["iPhone 16e"]
-                        
-                        # 2. OVERRIDE: iPhone 16e "1 yen" Campaign
-                        # The scraped point value (e.g. 25000) might be insufficient for the "Real 1 yen" promo.
-                        # Target: Effective Rent ~ 48 yen.
-                        # Calculation: Exemption = Gross/2.
-                        # Needed Points = Gross - Exemption - 48.
-                        if "16e" in model_name:
-                             # Force heavy points for 1 yen deal if not found dynamically
-                             # E.g. Gross 104800 -> Exemption 52400 -> Remainder 52400.
-                             # Points needed = 52352.
-                             # If scraped < 50000, apply override.
-                             if points_awarded < 50000:
-                                 points_awarded = 52352
-                        
-                        # Rakuten Exemption (Buy 48, pay 24)
-                        # Effectively half price exemption
-                        program_exemption = int(price_gross / 2)
-                        
-                        discount_official = 0 
-                        
-                        price_effective_buyout = price_gross - discount_official - points_awarded
-                        price_effective_rent = price_gross - discount_official - program_exemption - points_awarded
-                        
-                        if price_effective_rent < 0: price_effective_rent = 0 # Can be 1 yen technically
-                        
-                        # Get Variants (Stock/Color)
-                        # Default keys for safety
-                        item_variants = []
-                        if model_name in stock_map and storage in stock_map[model_name]:
-                             item_variants = stock_map[model_name][storage]
-                        
-                        items.append({
-                            "carrier": "Rakuten",
-                            "model": model_name,
-                            "storage": storage,
-                            "price_gross": price_gross,
-                            "discount_official": discount_official,
-                            "program_exemption": program_exemption, 
-                            "points_awarded": points_awarded,
-                            "price_effective_rent": price_effective_rent,
-                            "price_effective_buyout": price_effective_buyout,
-                            "variants": item_variants,
-                            "url": url
-                        })
-                        print(f"    -> Added {model_name} {storage} Gross:{price_gross} Pts:{points_awarded}")
-                    except ValueError:
-                        continue
+            table = section.locator("table")
+            if await table.count() == 0: continue
+            
+            headers = await table.locator("thead th").all()
+            storages = []
+            for th in headers:
+                txt = await th.text_content()
+                txt = txt.strip()
+                if "GB" in txt or "TB" in txt:
+                    storages.append(txt)
+            if not storages: continue
 
+            rows = await table.locator("tbody tr").all()
+            price_map = {s: {"gross": 0, "program": 0, "rent": 0} for s in storages}
+            
+            def extract_price(text):
+                import re
+                m = re.search(r'([\d,]+)', text)
+                if m: return int(m.group(1).replace(',', ''))
+                return 0
+            
+            for row in rows:
+                th = row.locator("th")
+                if await th.count() == 0: continue
+                header_text = await th.first.text_content()
+                
+                tds = await row.locator("td").all()
+                if len(tds) < len(storages): continue
+                
+                # Logic A: Gross (Rakuten row)
+                if any(k in header_text for k in ["楽天モバイル", "一括価格", "現金販売価格"]):
+                    for i, td in enumerate(tds):
+                        if i >= len(storages): break
+                        txt = await td.text_content()
+                        gross = extract_price(txt)
+                        if gross > 0:
+                            price_map[storages[i]]["gross"] = gross
+                        if "48回" in txt:
+                             m_inst = re.search(r'48回.*?([\d,]+)', txt)
+                             if m_inst:
+                                 installment = int(m_inst.group(1).replace(',', ''))
+                                 price_map[storages[i]]["program_calc"] = installment * 24
 
+                # Logic B: Program Row
+                elif any(k in header_text for k in ["買い替え超トクプログラム", "24回分"]):
+                    for i, td in enumerate(tds):
+                        if i >= len(storages): break
+                        val = extract_price(await td.text_content())
+                        if val > 0: price_map[storages[i]]["program"] = val
+
+                # Logic C: Rent Row (Priority)
+                elif any(k in header_text for k in ["実質", "キャンペーン"]):
+                    for i, td in enumerate(tds):
+                        if i >= len(storages): break
+                        val = extract_price(await td.text_content())
+                        if val > 0: price_map[storages[i]]["rent"] = val
+            
+            for s in storages:
+                pm = price_map[s]
+                p_gross = pm["gross"]
+                if p_gross == 0: continue
+
+                # Determine Effective Rent
+                p_program = 0
+                if pm["program"] > 0: p_program = pm["program"]
+                elif "program_calc" in pm and pm["program_calc"] > 0: p_program = pm["program_calc"]
+                else: p_program = int(p_gross / 2) # Fallback
+                
+                p_effective_rent = pm["rent"] if pm["rent"] > 0 else p_program
+                p_effective_buyout = p_gross
+                
+                points_awarded = 0
+                if model_name in campaign_map:
+                    points_awarded = campaign_map[model_name]
+                elif "16e" in model_name and "iPhone 16e" in campaign_map:
+                        points_awarded = campaign_map["iPhone 16e"]
+
+                if "16e" in model_name and points_awarded < 50000:
+                     points_awarded = 52352 # Override for 16e
+
+                # Adjust Rent for points if not already accounted for?
+                # Usually "Real Price" includes points.
+                # If we used p_program (installment based), we MUST subtract points.
+                # If we used pm["rent"] (scraped "Real" price), it MIGHT imply points used?
+                # User logic: "Effective Rent = Program price... if campaign price exists, use that".
+                # Usually campaign "Real 1 yen" = Program payment - Points.
+                # So if we scraped "Real Price", it likely is the final.
+                # But if we use "Program Payment", we need to subtract points.
+                
+                # Decision: If we used p_program (calculated), subtract points.
+                # If we used pm["rent"] (scraped), assume it's final?
+                # Rakuten "Real" usually means AFTER points.
+                
+                # However, to be safe and consistent with previous logic:
+                # previous logic was: `effective_rent = gross - exemption - points`.
+                # p_program IS (gross - exemption).
+                # So we should subtract points from p_program.
+                
+                if pm["rent"] == 0: # Check if we used fallback
+                     p_effective_rent = p_effective_rent - points_awarded
+                
+                if p_effective_rent < 0: p_effective_rent = 0
+                
+                # Exemption
+                program_exemption = p_gross - p_program
+                if program_exemption < 0: program_exemption = 0
+                
+                # Variants from Stock Map
+                item_variants = []
+                if model_name in stock_map and s in stock_map[model_name]:
+                        item_variants = stock_map[model_name][s]
+
+                items.append({
+                    "carrier": "Rakuten",
+                    "model": model_name,
+                    "storage": s,
+                    "price_gross": p_gross,
+                    "price_effective_rent": p_effective_rent,
+                    "price_effective_buyout": p_effective_buyout - points_awarded,
+                    "url": url,
+                    "discount_official": 0,
+                    "points_awarded": points_awarded,
+                    "program_exemption": program_exemption,
+                    "variants": item_variants
+                })
+                print(f"    -> Added {model_name} {s} Gross:{p_gross} Rent:{p_effective_rent}")
+
+    except Exception as e:
+        print(f"Error scraping Rakuten: {e}")
+        import traceback
+        traceback.print_exc()
 
     print(f"Rakuten: Found {len(items)} items")
     return items
+
 
 async def scrape_ahamo(page):
     print("Scraping ahamo...")
