@@ -3,539 +3,486 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>iPhone最安値チェッカー | 価格比較</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #F5F5F7;
+            /* Apple-like light gray */
+        }
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            /* IE and Edge */
+            scrollbar-width: none;
+            /* Firefox */
         }
     </style>
 </head>
 
-<body class="bg-gray-50 text-gray-800 min-h-screen p-4 md:p-8">
+<body class="text-gray-800 pb-20 md:pb-8">
 
     <div id="app" class="max-w-7xl mx-auto">
 
-        <!-- Header -->
-        <!-- Header Removed -->
+        <!-- Sticky Header -->
+        <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                <!-- Logo -->
+                <div class="flex items-center gap-2">
+                    <svg class="w-6 h-6 text-gray-900" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.61-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.18 2.83M13 3.5c.68-.83 1.14-1.99.98-3.14-1.02.04-2.26.69-3 1.54-.63.73-1.17 1.91-1.01 3.06 1.14.09 2.31-.61 3.03-1.46z" />
+                    </svg>
+                    <h1 class="text-lg font-bold tracking-tight text-gray-900 leading-none">
+                        iPhone<br><span class="text-xs font-normal text-gray-500">Price Monitor</span>
+                    </h1>
+                </div>
 
-        <!-- Controls -->
-        <div class="bg-white p-4 rounded-lg shadow mb-6">
+                <!-- Update Info -->
+                <div class="text-right">
+                    <span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded-full font-medium"
+                        id="updated-at">
+                        更新中...
+                    </span>
+                </div>
+            </div>
 
-            <!-- Top Row: Price Mode Toggle -->
-            <div class="flex justify-center mb-6">
-                <div class="bg-gray-100 p-1 rounded-lg inline-flex">
-                    <button id="mode-rent"
-                        class="px-4 py-2 rounded-md text-sm font-bold transition-all shadow-sm bg-white text-blue-600">
+            <!-- Price Mode Toggle (Tabs) -->
+            <div class="px-4 pb-3">
+                <div class="bg-gray-100 p-1 rounded-xl flex shadow-inner max-w-md mx-auto">
+                    <button id="mode-rent" onclick="setPriceMode('rent')"
+                        class="flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all shadow-sm bg-white text-gray-900">
                         実質負担 (2年返却)
                     </button>
-                    <button id="mode-buyout"
-                        class="px-4 py-2 rounded-md text-sm font-bold transition-all text-gray-500 hover:text-gray-700">
+                    <button id="mode-buyout" onclick="setPriceMode('buyout')"
+                        class="flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all text-gray-500 hover:text-gray-700">
                         一括購入
                     </button>
                 </div>
             </div>
+        </header>
 
-            <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+        <!-- Main Content -->
+        <main class="w-full px-4 pt-6">
 
-                <!-- Left: Filters -->
-                <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-                    <!-- Carriers -->
-                    <div class="flex items-center gap-2">
-                        <label class="font-bold text-gray-700">表示:</label>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" class="filter-carrier form-checkbox h-5 w-5 text-blue-600"
-                                value="Rakuten" checked>
-                            <span class="ml-2 text-gray-700">楽天モバイル</span>
+            <!-- Filters Section (Chips) -->
+            <div class="mb-8 space-y-4">
+
+                <!-- Carriers Filters -->
+                <div class="space-y-1">
+                    <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Carriers</h2>
+                    <div class="flex gap-2" id="carrier-filters">
+                        <!-- Checkboxes styled as badges -->
+                        <label class="cursor-pointer select-none">
+                            <input type="checkbox" class="filter-carrier peer hidden" value="Rakuten" checked>
+                            <div
+                                class="px-3 py-1.5 rounded-full text-xs font-bold bg-gray-200 text-gray-500 peer-checked:bg-[#BF0087] peer-checked:text-white transition-colors">
+                                Rakuten
+                            </div>
                         </label>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" class="filter-carrier form-checkbox h-5 w-5 text-green-600"
-                                value="ahamo" checked>
-                            <span class="ml-2 text-gray-700">ahamo</span>
+                        <label class="cursor-pointer select-none">
+                            <input type="checkbox" class="filter-carrier peer hidden" value="ahamo" checked>
+                            <div
+                                class="px-3 py-1.5 rounded-full text-xs font-bold bg-gray-200 text-gray-500 peer-checked:bg-[#28C842] peer-checked:text-white transition-colors">
+                                ahamo
+                            </div>
                         </label>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" class="filter-carrier form-checkbox h-5 w-5 text-pink-600"
-                                value="UQ mobile" checked>
-                            <span class="ml-2 text-gray-700">UQ mobile</span>
+                        <label class="cursor-pointer select-none">
+                            <input type="checkbox" class="filter-carrier peer hidden" value="UQ mobile" checked>
+                            <div
+                                class="px-3 py-1.5 rounded-full text-xs font-bold bg-gray-200 text-gray-500 peer-checked:bg-[#E60012] peer-checked:text-white transition-colors">
+                                UQ mobile
+                            </div>
                         </label>
-                    </div>
-
-                    <!-- Vertical Divider (Desktop) -->
-                    <div class="hidden md:block w-px h-8 bg-gray-300 mx-2"></div>
-
-                    <!-- Dropdowns -->
-                    <div class="flex flex-wrap gap-2">
-                        <select id="filter-model"
-                            class="border border-gray-300 rounded px-3 py-2 text-base md:text-sm focus:outline-none focus:border-blue-500 w-full md:w-auto">
-                            <option value="All">全モデル</option>
-                        </select>
-                        <select id="filter-storage"
-                            class="border border-gray-300 rounded px-3 py-2 text-base md:text-sm focus:outline-none focus:border-blue-500 w-full md:w-auto">
-                            <option value="All">全容量</option>
-                        </select>
                     </div>
                 </div>
 
-                <!-- Right: Sort -->
-                <div class="flex items-center gap-2 w-full md:w-auto justify-end">
-                    <label for="sort-select" class="font-bold text-gray-700 whitespace-nowrap">並び替え:</label>
-                    <select id="sort-select"
-                        class="border border-gray-300 rounded px-3 py-2 text-base md:text-sm focus:outline-none focus:border-blue-500 w-full md:w-auto">
-                        <option value="price_asc">実質負担が安い順</option>
-                        <option value="model_asc">モデル名順</option>
-                    </select>
+                <!-- Models Chips -->
+                <div class="space-y-1">
+                    <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Models</h2>
+                    <div class="flex overflow-x-auto gap-2 pb-2 no-scrollbar" id="filter-model-container">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Storage Chips -->
+                <div class="space-y-1">
+                    <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Storage</h2>
+                    <div class="flex overflow-x-auto gap-2 pb-2 no-scrollbar" id="filter-storage-container">
+                        <!-- Populated by JS -->
+                    </div>
                 </div>
             </div>
 
             <!-- Error Message -->
             <div id="error-message"
-                class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
-                role="alert">
-                <strong class="font-bold">エラー！</strong>
-                <span class="block sm:inline" id="error-text">データの読み込みに失敗しました。</span>
+                class="hidden bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6 text-sm">
+                <strong class="font-bold">Error:</strong> <span id="error-text">Failed to load data.</span>
             </div>
 
             <!-- Loading -->
-            <div id="loading" class="text-center py-10">
-                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <p class="mt-4 text-gray-500">価格データを読み込み中...</p>
+            <div id="loading" class="text-center py-20">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900 mx-auto"></div>
             </div>
 
-            <!-- Table (Desktop) / Cards (Mobile) -->
+            <!-- Product Grid/List -->
             <div id="product-container" class="hidden">
-                <div class="overflow-x-auto bg-white rounded-lg shadow">
+
+                <!-- Mobile Cards (Visible md:hidden) -->
+                <div id="mobile-product-list" class="grid grid-cols-1 gap-4 md:hidden">
+                    <!-- Injected by JS -->
+                </div>
+
+                <!-- Desktop Table (Hidden md:block) -->
+                <div class="hidden md:block overflow-hidden bg-white rounded-2xl shadow-sm border border-gray-200">
                     <table class="w-full text-left border-collapse">
-                        <thead class="bg-gray-100 hidden md:table-header-group">
+                        <thead class="bg-gray-50 border-b border-gray-200 sticky top-0">
                             <tr>
-                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider w-20">画像</th>
-                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">モデル</th>
-                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">容量</th>
-                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">キャリア</th>
-                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">定価
-                                </th>
+                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider w-16">Image</th>
+                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Model</th>
+                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Storage</th>
+                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Carrier</th>
                                 <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
-                                    キャンペーン適用後実質負担</th>
-                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">購入
-                                </th>
+                                    Price (Sub)</th>
+                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
+                                    Price (Main)</th>
+                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
+                                    Link</th>
                             </tr>
                         </thead>
-                        <tbody id="product-list" class="divide-y divide-gray-200 block md:table-row-group">
-                            <!-- Items injected here -->
+                        <tbody id="desktop-product-list" class="divide-y divide-gray-100">
+                            <!-- Injected by JS -->
                         </tbody>
                     </table>
                 </div>
+
+                <!-- No Results -->
+                <div id="no-results" class="hidden text-center py-20 text-gray-400">
+                    <p class="font-bold">No items found.</p>
+                    <p class="text-sm">Try changing filters.</p>
+                </div>
+
             </div>
+        </main>
 
-            <!-- No Results -->
-            <div id="no-results" class="hidden text-center py-10 text-gray-500">
-                条件に一致する商品が見つかりませんでした。
-            </div>
+    </div>
 
-            <!-- Last Updated (Footer) -->
-            <div class="mt-8 text-center text-gray-400 text-xs">
-                最終更新: <span id="updated-at" class="font-medium">読み込み中...</span>
-            </div>
+    <script>
+        // State
+        let allData = [];
+        let carriers = ['Rakuten', 'ahamo', 'UQ mobile'];
+        let selectedModel = 'All';
+        let selectedStorage = 'All';
+        let priceMode = 'rent'; // 'rent' or 'buyout'
 
-        </div>
+        // DOM Elements
+        const updatedAtEl = document.getElementById('updated-at');
+        const errorMessageEl = document.getElementById('error-message');
+        const errorTextEl = document.getElementById('error-text');
+        const loadingEl = document.getElementById('loading');
+        const productContainerEl = document.getElementById('product-container');
+        const mobileListEl = document.getElementById('mobile-product-list');
+        const desktopListEl = document.getElementById('desktop-product-list');
+        const noResultsEl = document.getElementById('no-results');
 
-        <script>
-            // State
-            let allData = [];
-            let carriers = ['Rakuten', 'ahamo', 'UQ mobile'];
-            let selectedModel = 'All';
-            let selectedStorage = 'All';
-            let sortBy = 'price_asc';
-            let priceMode = 'rent'; // 'rent' or 'buyout'
+        const carrierCheckboxes = document.querySelectorAll('.filter-carrier');
+        const modelContainer = document.getElementById('filter-model-container');
+        const storageContainer = document.getElementById('filter-storage-container');
 
-            // DOM Elements
-            const updatedAtEl = document.getElementById('updated-at');
-            const errorMessageEl = document.getElementById('error-message');
-            const errorTextEl = document.getElementById('error-text');
-            const loadingEl = document.getElementById('loading');
-            const productContainerEl = document.getElementById('product-container');
-            const productListEl = document.getElementById('product-list');
-            const noResultsEl = document.getElementById('no-results');
-            const sortSelect = document.getElementById('sort-select');
-            const carrierCheckboxes = document.querySelectorAll('.filter-carrier');
-            const filterModel = document.getElementById('filter-model');
-            const filterStorage = document.getElementById('filter-storage');
-            const modeRentBtn = document.getElementById('mode-rent');
-            const modeBuyoutBtn = document.getElementById('mode-buyout');
+        const modeRentBtn = document.getElementById('mode-rent');
+        const modeBuyoutBtn = document.getElementById('mode-buyout');
 
-            // Table Headers (Dynamic)
-            // Indices shifted due to added Image column.
-            const thPriceSub = document.querySelector('thead tr th:nth-child(5)');
-            const thPriceMain = document.querySelector('thead tr th:nth-child(6)');
+        const thPriceSub = document.querySelector('thead tr th:nth-child(5)');
+        const thPriceMain = document.querySelector('thead tr th:nth-child(6)');
 
-            // Init
-            document.addEventListener('DOMContentLoaded', () => {
-                fetchData();
-                setupEventListeners();
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchData();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Carrier Filter
+            carrierCheckboxes.forEach(cb => {
+                cb.addEventListener('change', () => {
+                    carriers = Array.from(carrierCheckboxes)
+                        .filter(c => c.checked)
+                        .map(c => c.value);
+                    render();
+                });
+            });
+        }
+
+        async function fetchData() {
+            try {
+                const response = await fetch('./data.json');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+
+                updatedAtEl.textContent = data.updated_at || '不明';
+                allData = data.items;
+
+                populateFilterChips(allData);
+                markLowestPrices(allData);
+
+                loadingEl.classList.add('hidden');
+                productContainerEl.classList.remove('hidden');
+                render();
+
+            } catch (err) {
+                console.error(err);
+                loadingEl.classList.add('hidden');
+                errorMessageEl.classList.remove('hidden');
+                errorTextEl.textContent = err.message;
+            }
+        }
+
+        function populateFilterChips(items) {
+            // --- Models ---
+            const models = [...new Set(items.map(i => i.model))].sort();
+            models.unshift('All'); // Add All option
+
+            modelContainer.innerHTML = '';
+            models.forEach(m => {
+                const btn = document.createElement('button');
+                btn.textContent = (m === 'All') ? 'All Models' : m.replace('iPhone ', '');
+                btn.className = `whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${m === selectedModel
+                        ? 'bg-gray-900 text-white border-gray-900 shadow-md'
+                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                    }`;
+                btn.onclick = () => {
+                    selectedModel = m;
+                    updateChipStyles(modelContainer, m, 'All Models');
+                    render();
+                };
+                modelContainer.appendChild(btn);
             });
 
-            function setupEventListeners() {
-                // Price Mode Toggles
-                modeRentBtn.addEventListener('click', () => setPriceMode('rent'));
-                modeBuyoutBtn.addEventListener('click', () => setPriceMode('buyout'));
+            // --- Storage ---
+            // Sort logic
+            const storages = [...new Set(items.map(i => i.storage))];
+            storages.sort((a, b) => {
+                const parse = (s) => (s.includes('TB') ? parseInt(s) * 1024 : parseInt(s) || 9999);
+                return parse(a) - parse(b);
+            });
+            storages.unshift('All');
 
-                sortSelect.addEventListener('change', (e) => {
-                    sortBy = e.target.value;
+            storageContainer.innerHTML = '';
+            storages.forEach(s => {
+                const btn = document.createElement('button');
+                btn.textContent = (s === 'All') ? 'All Sizes' : s;
+                btn.className = `whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${s === selectedStorage
+                        ? 'bg-gray-900 text-white border-gray-900 shadow-md'
+                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                    }`;
+                btn.onclick = () => {
+                    selectedStorage = s;
+                    updateChipStyles(storageContainer, s, 'All Sizes');
                     render();
-                });
+                };
+                storageContainer.appendChild(btn);
+            });
+        }
 
-                carrierCheckboxes.forEach(cb => {
-                    cb.addEventListener('change', () => {
-                        carriers = Array.from(carrierCheckboxes)
-                            .filter(c => c.checked)
-                            .map(c => c.value);
-                        render();
-                    });
-                });
+        function updateChipStyles(container, selectedValue, allLabel) {
+            Array.from(container.children).forEach(btn => {
+                const label = btn.textContent;
+                // Simple check against label or 'iPhone ' prefix logic
+                const isSelected = (label === selectedValue.replace('iPhone ', '')) || (label === allLabel && selectedValue === 'All') || (label === selectedValue);
 
-                filterModel.addEventListener('change', (e) => {
-                    selectedModel = e.target.value;
-                    render();
-                });
+                btn.className = `whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${isSelected
+                        ? 'bg-gray-900 text-white border-gray-900 shadow-md transform scale-105'
+                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                    }`;
+            });
+        }
 
-                filterStorage.addEventListener('change', (e) => {
-                    selectedStorage = e.target.value;
-                    render();
+        function markLowestPrices(items) {
+            // Group by Model + Storage
+            const groups = {};
+            items.forEach(item => {
+                const key = `${item.model}-${item.storage}`;
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(item);
+            });
+
+            Object.values(groups).forEach(group => {
+                if (group.length === 0) return;
+                const minPrice = Math.min(...group.map(i => priceMode === 'rent' ? i.price_effective_rent : i.price_effective_buyout));
+                group.forEach(item => {
+                    const price = priceMode === 'rent' ? item.price_effective_rent : item.price_effective_buyout;
+                    item.isLowest = (price === minPrice);
                 });
+            });
+        }
+
+        function setPriceMode(mode) {
+            priceMode = mode;
+
+            // Toggle Button Styles
+            if (mode === 'rent') {
+                modeRentBtn.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all shadow-sm bg-white text-blue-600";
+                modeBuyoutBtn.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all text-gray-500 hover:text-gray-700";
+                if (thPriceSub) thPriceSub.textContent = "定価";
+                if (thPriceMain) thPriceMain.textContent = "実質負担";
+            } else {
+                modeRentBtn.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all text-gray-500 hover:text-gray-700";
+                modeBuyoutBtn.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all shadow-sm bg-white text-blue-600";
+                if (thPriceSub) thPriceSub.textContent = "実質負担";
+                if (thPriceMain) thPriceMain.textContent = "一括実質";
             }
 
-            async function fetchData() {
-                try {
-                    const response = await fetch('./data.json');
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    const data = await response.json();
+            markLowestPrices(allData);
+            render();
+        }
 
-                    updatedAtEl.textContent = data.updated_at || '不明';
-                    allData = data.items;
+        function render() {
+            // Filter
+            let filtered = allData.filter(item => {
+                if (!carriers.includes(item.carrier)) return false;
+                if (selectedModel !== 'All' && item.model !== selectedModel) return false;
+                if (selectedStorage !== 'All' && item.storage !== selectedStorage) return false;
+                return true;
+            });
 
-                    populateFilters(allData);
+            // Sort (Always Price Ascending for simplicity in this redesign)
+            filtered.sort((a, b) => {
+                const valA = priceMode === 'rent' ? a.price_effective_rent : a.price_effective_buyout;
+                const valB = priceMode === 'rent' ? b.price_effective_rent : b.price_effective_buyout;
+                return valA - valB;
+            });
 
-                    // Initial sort/mark
-                    markLowestPrices(allData);
+            // Clear
+            mobileListEl.innerHTML = '';
+            desktopListEl.innerHTML = '';
 
-                    loadingEl.classList.add('hidden');
-                    productContainerEl.classList.remove('hidden');
-                    render();
-
-                } catch (err) {
-                    console.error(err);
-                    loadingEl.classList.add('hidden');
-                    errorMessageEl.classList.remove('hidden');
-                    errorTextEl.textContent = err.message + " メインスクリプトを実行してください。";
-                }
+            if (filtered.length === 0) {
+                productContainerEl.classList.add('hidden');
+                noResultsEl.classList.remove('hidden');
+                return;
+            } else {
+                productContainerEl.classList.remove('hidden');
+                noResultsEl.classList.add('hidden');
             }
 
-            function populateFilters(items) {
-                // Models
-                const models = [...new Set(items.map(i => i.model))].sort();
-                filterModel.innerHTML = '<option value="All">全モデル</option>';
-                models.forEach(m => {
-                    const opt = document.createElement('option');
-                    opt.value = m;
-                    opt.textContent = m;
-                    filterModel.appendChild(opt);
-                });
+            filtered.forEach(item => {
+                const imgUrl = getProductImage(item.model);
+                const carrierClass = getCarrierColor(item.carrier);
+                const carrierName = getCarrierDisplayName(item.carrier);
+                const isLowest = item.isLowest;
 
-                // Storage
-                // Sort logic for storage: 64GB < 128GB < 256GB < 512GB < 1TB
-                const storages = [...new Set(items.map(i => i.storage))];
-                storages.sort((a, b) => {
-                    const parseStorage = (s) => {
-                        if (s.includes('TB')) return parseInt(s) * 1024;
-                        return parseInt(s) || 9999;
-                    };
-                    return parseStorage(a) - parseStorage(b);
-                });
-
-                filterStorage.innerHTML = '<option value="All">全容量</option>';
-                storages.forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s;
-                    opt.textContent = s;
-                    filterStorage.appendChild(opt);
-                });
-            }
-
-            function markLowestPrices(items) {
-                // Group by Model + Storage
-                const groups = {};
-                items.forEach(item => {
-                    const key = `${item.model}-${item.storage}`;
-                    if (!groups[key]) groups[key] = [];
-                    groups[key].push(item);
-                });
-
-                // Find min price in each group based on current mode
-                Object.values(groups).forEach(group => {
-                    if (group.length === 0) return;
-
-                    const minPrice = Math.min(...group.map(i => {
-                        return priceMode === 'rent' ? i.price_effective_rent : i.price_effective_buyout;
-                    }));
-
-                    group.forEach(item => {
-                        const price = priceMode === 'rent' ? item.price_effective_rent : item.price_effective_buyout;
-                        item.isLowest = (price === minPrice);
-                    });
-                });
-            }
-
-            function setPriceMode(mode) {
-                priceMode = mode;
-
-                // Update UI styles
-                if (mode === 'rent') {
-                    modeRentBtn.className = "px-4 py-2 rounded-md text-sm font-bold transition-all shadow-sm bg-white text-blue-600 border border-blue-200";
-                    modeBuyoutBtn.className = "px-4 py-2 rounded-md text-sm font-bold transition-all text-gray-500 hover:text-gray-700 hover:bg-gray-200";
-
-                    // Update Table Header
-                    if (thPriceSub) thPriceSub.textContent = "定価";
-                    if (thPriceMain) thPriceMain.textContent = "キャンペーン適用後実質負担";
-
+                // Values
+                let mainPrice, subPrice, mainLabel, subLabel, unitBadge = '';
+                if (priceMode === 'rent') {
+                    mainPrice = item.price_effective_rent;
+                    subPrice = item.price_gross;
+                    mainLabel = '実質負担';
+                    subLabel = '定価';
+                    if (item.program_exemption > 0) unitBadge = '返却P';
                 } else {
-                    modeRentBtn.className = "px-4 py-2 rounded-md text-sm font-bold transition-all text-gray-500 hover:text-gray-700 hover:bg-gray-200";
-                    modeBuyoutBtn.className = "px-4 py-2 rounded-md text-sm font-bold transition-all shadow-sm bg-white text-blue-600 border border-blue-200";
-
-                    // Update Table Header
-                    if (thPriceSub) thPriceSub.textContent = "実質負担";
-                    if (thPriceMain) thPriceMain.textContent = "一括購入実質";
+                    mainPrice = item.price_effective_buyout;
+                    subPrice = item.price_effective_rent;
+                    mainLabel = '一括実質';
+                    subLabel = '実質負担';
+                    if (item.points_awarded > 0) unitBadge = 'Pt還元含';
                 }
 
-                markLowestPrices(allData);
-                render();
-            }
+                const fmtMain = mainPrice.toLocaleString();
+                const fmtSub = subPrice.toLocaleString();
 
-            function render() {
-                // Filter
-                let filtered = allData.filter(item => {
-                    // Carrier
-                    if (!carriers.includes(item.carrier)) return false;
-                    // Model
-                    if (selectedModel !== 'All' && item.model !== selectedModel) return false;
-                    // Storage
-                    if (selectedStorage !== 'All' && item.storage !== selectedStorage) return false;
-                    return true;
-                });
+                // --- Mobile Card ---
+                const lowestBadge = isLowest ? `<div class="absolute -top-1 -left-1 bg-yellow-400 text-yellow-900 text-[10px] font-black px-2 py-0.5 rounded shadow-sm z-10">最安</div>` : '';
 
-                // Sort
-                filtered.sort((a, b) => {
-                    // Determine price to sort by based on mode
-                    const getPrice = (item) => priceMode === 'rent' ? (item.price_effective_rent || 0) : (item.price_effective_buyout || 0);
-
-                    const priceA = getPrice(a);
-                    const priceB = getPrice(b);
-
-                    if (sortBy === 'price_asc') {
-                        return priceA - priceB;
-                    } else if (sortBy === 'model_asc') {
-                        if (a.model < b.model) return -1;
-                        if (a.model > b.model) return 1;
-                        const storageA = parseInt(a.storage) || 0;
-                        const storageB = parseInt(b.storage) || 0;
-                        return storageA - storageB;
-                    }
-                    return 0;
-                });
-
-                // Render
-                productListEl.innerHTML = '';
-
-                if (filtered.length === 0) {
-                    productContainerEl.classList.add('hidden');
-                    noResultsEl.classList.remove('hidden');
-                } else {
-                    productContainerEl.classList.remove('hidden');
-                    noResultsEl.classList.add('hidden');
-                }
-
-                filtered.forEach(item => {
-                    const tr = document.createElement('tr');
-                    // Mobile: block (card container), Desktop: table-row
-                    tr.className = `block md:table-row bg-white mobile-card border-b border-gray-200 md:border-b-0 ${item.isLowest ? 'ring-2 ring-yellow-400 ring-inset md:ring-0' : ''}`;
-
-
-                    // --- Prepare Values based on Mode ---
-                    let mainPriceVal = 0;
-                    let mainLabel = '';
-                    let subPriceVal = 0;
-                    let subLabel = '';
-
-                    if (priceMode === 'rent') {
-                        mainPriceVal = item.price_effective_rent;
-                        mainLabel = "実質負担";
-                        subPriceVal = item.price_gross;
-                        subLabel = "定価";
-                    } else {
-                        // Buyout Mode
-                        mainPriceVal = item.price_effective_buyout;
-                        mainLabel = "一括実質";
-                        subPriceVal = item.price_effective_rent;
-                        subLabel = "実質負担";
-                    }
-
-                    const formatPrice = (p) => (p || 0).toLocaleString();
-                    const mainPriceStr = formatPrice(mainPriceVal);
-                    const subPriceStr = formatPrice(subPriceVal);
-
-                    const rentExemptionBadge = (item.program_exemption > 0) ? '<span class="text-xs text-green-600 border border-green-200 px-1 rounded ml-1">返却P</span>' : '';
-                    // For buyout, we might want to show discount info if strict, but simplistic view for now.
-                    // If effective buyout < gross, it means there are discounts.
-
-                    // Colors / Badges
-                    const carrierClass = getCarrierColor(item.carrier);
-                    const isLowestText = item.isLowest ? 'text-red-600 font-bold' : 'text-gray-900 font-bold';
-                    const lowestBadge = item.isLowest ? `<span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded font-bold ml-2">最安</span>` : '';
-
-                    // Stock (Visual Helpers)
-                    let stockStatus = '<span class="text-gray-400">-</span>';
-                    if (item.variants && item.variants.length > 0) {
-                        const anyInStock = item.variants.some(v => v.stock_available);
-                        if (anyInStock) {
-                            stockStatus = '<span class="text-blue-600 font-bold text-lg">○</span>';
-                        } else {
-                            stockStatus = '<span class="text-red-600 font-bold text-lg">×</span>';
-                        }
-                    }
-
-                    // Product Image
-                    const imgUrl = getProductImage(item.model);
-
-                    // --- Mobile Card Content ---
-                    // Shows MAIN price prominently. SUB price smaller.
-                    const mobileCard = `
-                    <td class="md:hidden block p-4">
-                        <div class="flex gap-4 mb-2">
-                             <!-- Image Section -->
-                             <div class="flex-shrink-0">
-                                 <img src="${imgUrl}" alt="${item.model}" class="w-16 h-auto object-contain rounded">
-                             </div>
-                             
-                             <!-- Details Section -->
-                             <div class="flex-grow">
-                                <div class="flex justify-between items-start mb-1">
-                                    <span class="inline-block px-3 py-1 text-xs rounded-full shadow-sm mb-1 ${carrierClass}">${getCarrierDisplayName(item.carrier)}</span>
-                                    ${lowestBadge}
+                const cardHTML = `
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 relative overflow-hidden">
+                    ${lowestBadge}
+                    <div class="flex gap-4 mb-3">
+                        <!-- Image -->
+                        <div class="w-16 h-20 flex-shrink-0 bg-gray-50 rounded-lg flex items-center justify-center p-1">
+                            <img src="${imgUrl}" class="w-full h-full object-contain mix-blend-multiply">
+                        </div>
+                        <!-- Header Info -->
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-start mb-1">
+                                <div>
+                                    <h3 class="text-base font-bold text-gray-900 leading-tight">${item.model}</h3>
+                                    <p class="text-xs text-gray-500">${item.storage}</p>
                                 </div>
-                                <h3 class="text-lg font-bold text-gray-900 leading-tight">
-                                    ${item.model} 
-                                    <span class="text-sm font-normal text-gray-500 ml-1">${item.storage}</span>
-                                </h3>
+                                <span class="px-2 py-1 rounded text-[10px] font-bold ${carrierClass}">${carrierName}</span>
+                            </div>
+                            
+                            <!-- Price Block -->
+                            <div class="mt-2">
+                                <div class="flex items-baseline gap-1">
+                                    <span class="text-xs text-gray-400 font-medium">${mainLabel}</span>
+                                    <span class="text-3xl font-black text-red-600 tracking-tighter">¥${fmtMain}</span>
+                                    ${unitBadge ? `<span class="text-[10px] text-red-500 border border-red-200 px-1 rounded">${unitBadge}</span>` : ''}
+                                </div>
+                                <div class="text-[10px] text-gray-400 mt-0.5">
+                                    ${subLabel}: ¥${fmtSub}
+                                </div>
                             </div>
                         </div>
-                        
-                        <!-- Main Price -->
-                        <div class="flex items-baseline gap-2 mb-1 ml-20">
-                            <span class="text-sm text-gray-500">${mainLabel}:</span>
-                            <span class="text-2xl ${isLowestText}">¥${mainPriceStr}</span>
-                            ${(priceMode === 'rent') ? rentExemptionBadge : ''}
-                        </div>
-                        
-                        <!-- Sub Prices & Info -->
-                        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-600 mb-4 ml-20">
-                            <div class="flex justify-between border-b border-gray-100 pb-1">
-                                <span>${subLabel}:</span>
-                                <span>¥${subPriceStr}</span>
-                            </div>
-                             <div class="flex justify-between border-b border-gray-100 pb-1 items-center">
-                                <span>在庫:</span>
-                                ${stockStatus}
-                            </div>
-                        </div>
-                        
-                        <a href="${item.url}" target="_blank" class="block w-full bg-blue-600 text-white text-center font-bold py-3 rounded-lg hover:bg-blue-700 transition active:scale-95 shadow-sm">
-                            公式サイトへ
+                    </div>
+                
+                    <!-- Action -->
+                    <a href="${item.url}" target="_blank" class="block w-full bg-slate-900 text-white text-center text-sm font-bold py-3 rounded-xl shadow hover:bg-slate-800 transition active:scale-95">
+                        公式サイトで見る
+                    </a>
+                </div>
+                `;
+                mobileListEl.insertAdjacentHTML('beforeend', cardHTML);
+
+                // --- Desktop Row (Simplified for now) ---
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition-colors group";
+                tr.innerHTML = `
+                    <td class="p-4"><img src="${imgUrl}" class="w-10 h-auto"></td>
+                    <td class="p-4 font-bold text-gray-700">${item.model}</td>
+                    <td class="p-4 text-gray-500 text-sm">${item.storage}</td>
+                    <td class="p-4"><span class="px-2 py-1 rounded text-xs font-bold ${carrierClass}">${carrierName}</span></td>
+                    <td class="p-4 text-right text-sm text-gray-400">¥${fmtSub}</td>
+                    <td class="p-4 text-right font-bold text-red-600 text-lg">
+                        ¥${fmtMain}
+                        ${unitBadge ? `<br><span class="text-[10px] font-normal text-gray-400">${unitBadge}</span>` : ''}
+                    </td>
+                    <td class="p-4 text-center">
+                         <a href="${item.url}" target="_blank" class="inline-block text-blue-600 hover:text-blue-800 text-sm font-bold">
+                            View ->
                         </a>
                     </td>
-                    `;
+                `;
+                desktopListEl.appendChild(tr);
+            });
+        }
 
-                    // --- Desktop Table Content ---
-                    // Columns: Image, Model, Storage, Carrier, SubPrice(Col4), MainPrice(Col5), Button
+        function getCarrierColor(carrier) {
+            if (carrier === 'Rakuten') return 'bg-[#BF0087] text-white';
+            if (carrier === 'ahamo') return 'bg-[#28C842] text-white';
+            if (carrier === 'UQ mobile') return 'bg-[#E60012] text-white';
+            return 'bg-gray-500 text-white';
+        }
 
-                    const grossDisplayClass = priceMode === 'buyout' ? isLowestText + " text-base" : 'text-gray-600 text-sm';
-                    const col5Class = isLowestText + " text-base";
+        function getCarrierDisplayName(carrier) {
+            if (carrier === 'Rakuten') return 'Rakuten';
+            return carrier;
+        }
 
-                    // Col4 Content (Sub Price)
-                    let col4Content = '';
-                    if (priceMode === 'rent') {
-                        // Sub is Gross
-                        col4Content = `¥${formatPrice(item.price_gross)}`;
-                    } else {
-                        // Sub is Rent
-                        col4Content = `¥${formatPrice(item.price_effective_rent)}` + '<br><span class="text-xs text-gray-400">実質</span>';
-                    }
+        function getProductImage(model) {
+            let shortName = model.replace('iPhone ', '').trim();
+            return `https://placehold.co/100x120/eeeeee/333333/png?text=${encodeURIComponent(shortName)}`;
+        }
 
-                    // Col5 Content (Main Price)
-                    let col5Content = '';
-                    if (priceMode === 'rent') {
-                        // Main is Rent
-                        col5Content = `
-                            <span class="${col5Class}">¥${formatPrice(item.price_effective_rent)}</span>
-                            ${item.program_exemption > 0 ? '<br><span class="text-xs text-green-600">返却CP</span>' : ''}
-                       `;
-                    } else {
-                        // Main is Buyout Effective
-                        col5Content = `
-                            <span class="${col5Class}">¥${formatPrice(item.price_effective_buyout)}</span>
-                            ${(item.discount_official > 0 || item.points_awarded > 0) ? '<br><span class="text-xs text-green-600">値引/pt含</span>' : ''}
-                       `;
-                    }
-
-                    // Reconstruct columns
-                    const desktopColumns = `
-                    <td class="hidden md:table-cell p-4">
-                        <img src="${imgUrl}" alt="${item.model}" class="w-12 h-auto object-contain">
-                    </td>
-                    <td class="hidden md:table-cell p-4 font-medium">${item.model}</td>
-                    <td class="hidden md:table-cell p-4 text-gray-600">${item.storage}</td>
-                    <td class="hidden md:table-cell p-4">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs ${carrierClass}">
-                            ${getCarrierDisplayName(item.carrier)}
-                        </span>
-                    </td>
-                    <td class="hidden md:table-cell p-4 text-right">
-                         <span class="text-gray-600 text-sm">${col4Content}</span>
-                    </td>
-                    <td class="hidden md:table-cell p-4 text-right">
-                        <div>
-                             ${col5Content}
-                        </div>
-                    </td>
-                    <td class="hidden md:table-cell p-4 text-center">
-                         <a href="${item.url}" target="_blank" class="inline-block px-4 py-2 border border-blue-600 rounded text-blue-600 hover:bg-blue-50 text-sm font-medium transition-colors">
-                            公式サイトへ
-                        </a>
-                    </td>
-                    `;
-
-                    tr.innerHTML = mobileCard + desktopColumns;
-                    productListEl.appendChild(tr);
-                });
-            }
-
-            function getCarrierColor(carrier) {
-                if (carrier === 'Rakuten') return 'bg-[#BF0087] text-white font-bold';
-                if (carrier === 'ahamo') return 'bg-[#28C842] text-white font-bold';
-                if (carrier === 'UQ mobile') return 'bg-[#E60012] text-white font-bold';
-                return 'bg-gray-500 text-white font-bold';
-            }
-
-            function getCarrierDisplayName(carrier) {
-                if (carrier === 'Rakuten') return '楽天モバイル';
-                return carrier;
-            }
-
-            function getProductImage(model) {
-                // Shorten model name for URL
-                let shortName = model.replace('iPhone ', '').trim();
-                return `https://placehold.co/100x120/eeeeee/333333/png?text=${encodeURIComponent(shortName)}`;
-            }
-        </script>
+    </script>
 </body>
 
 </html>
