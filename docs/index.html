@@ -74,21 +74,21 @@
                         <label class="cursor-pointer select-none">
                             <input type="checkbox" class="filter-carrier peer hidden" value="Rakuten" checked>
                             <div
-                                class="px-3 py-1.5 rounded-full text-xs font-bold bg-gray-200 text-gray-500 peer-checked:bg-[#BF0087] peer-checked:text-white transition-colors">
+                                class="px-3 py-1.5 rounded-full text-xs font-bold bg-gray-200 text-gray-500 peer-checked:bg-[#ff008c] peer-checked:text-white transition-colors">
                                 楽天モバイル
                             </div>
                         </label>
                         <label class="cursor-pointer select-none">
                             <input type="checkbox" class="filter-carrier peer hidden" value="ahamo" checked>
                             <div
-                                class="px-3 py-1.5 rounded-full text-xs font-bold bg-gray-200 text-gray-500 peer-checked:bg-[#28C842] peer-checked:text-white transition-colors">
+                                class="px-3 py-1.5 rounded-full text-xs font-bold bg-gray-200 text-gray-500 peer-checked:bg-[#f4ee0b] peer-checked:text-black transition-colors">
                                 ahamo
                             </div>
                         </label>
                         <label class="cursor-pointer select-none">
                             <input type="checkbox" class="filter-carrier peer hidden" value="UQ mobile" checked>
                             <div
-                                class="px-3 py-1.5 rounded-full text-xs font-bold bg-gray-200 text-gray-500 peer-checked:bg-[#E60012] peer-checked:text-white transition-colors">
+                                class="px-3 py-1.5 rounded-full text-xs font-bold bg-gray-200 text-gray-500 peer-checked:bg-[#0091d7] peer-checked:text-white transition-colors">
                                 UQ mobile
                             </div>
                         </label>
@@ -245,8 +245,8 @@
                 const btn = document.createElement('button');
                 btn.textContent = (m === 'All') ? '全機種' : m.replace('iPhone ', '');
                 btn.className = `whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${m === selectedModel
-                        ? 'bg-gray-900 text-white border-gray-900 shadow-md'
-                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                    ? 'bg-gray-900 text-white border-gray-900 shadow-md'
+                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                     }`;
                 btn.onclick = () => {
                     selectedModel = m;
@@ -270,8 +270,8 @@
                 const btn = document.createElement('button');
                 btn.textContent = (s === 'All') ? '全容量' : s;
                 btn.className = `whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${s === selectedStorage
-                        ? 'bg-gray-900 text-white border-gray-900 shadow-md'
-                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                    ? 'bg-gray-900 text-white border-gray-900 shadow-md'
+                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                     }`;
                 btn.onclick = () => {
                     selectedStorage = s;
@@ -289,8 +289,8 @@
                 const isSelected = (label === selectedValue.replace('iPhone ', '')) || (label === allLabel && selectedValue === 'All') || (label === selectedValue);
 
                 btn.className = `whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${isSelected
-                        ? 'bg-gray-900 text-white border-gray-900 shadow-md transform scale-105'
-                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                    ? 'bg-gray-900 text-white border-gray-900 shadow-md transform scale-105'
+                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                     }`;
             });
         }
@@ -455,9 +455,9 @@
         }
 
         function getCarrierColor(carrier) {
-            if (carrier === 'Rakuten') return 'bg-[#BF0087] text-white font-bold';
-            if (carrier === 'ahamo') return 'bg-[#28C842] text-white font-bold';
-            if (carrier === 'UQ mobile') return 'bg-[#E60012] text-white font-bold';
+            if (carrier === 'Rakuten') return 'bg-[#ff008c] text-white font-bold';
+            if (carrier === 'ahamo') return 'bg-[#f4ee0b] text-black font-bold';
+            if (carrier === 'UQ mobile') return 'bg-[#0091d7] text-white font-bold';
             return 'bg-gray-500 text-white font-bold';
         }
 
