@@ -43,7 +43,7 @@
                             d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.61-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.18 2.83M13 3.5c.68-.83 1.14-1.99.98-3.14-1.02.04-2.26.69-3 1.54-.63.73-1.17 1.91-1.01 3.06 1.14.09 2.31-.61 3.03-1.46z" />
                     </svg>
                     <h1 class="text-lg font-bold tracking-tight text-gray-900 leading-none">
-                        iPhone<br><span class="text-xs font-normal text-gray-500">Price Monitor</span>
+                        iPhone<br><span class="text-xs font-normal text-gray-500">最安値チェッカー</span>
                     </h1>
                 </div>
 
@@ -79,14 +79,14 @@
 
                 <!-- Carriers Filters -->
                 <div class="space-y-1">
-                    <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Carriers</h2>
+                    <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">キャリア</h2>
                     <div class="flex gap-2" id="carrier-filters">
                         <!-- Checkboxes styled as badges -->
                         <label class="cursor-pointer select-none">
                             <input type="checkbox" class="filter-carrier peer hidden" value="Rakuten" checked>
                             <div
                                 class="px-3 py-1.5 rounded-full text-xs font-bold bg-gray-200 text-gray-500 peer-checked:bg-[#BF0087] peer-checked:text-white transition-colors">
-                                Rakuten
+                                楽天モバイル
                             </div>
                         </label>
                         <label class="cursor-pointer select-none">
@@ -108,7 +108,7 @@
 
                 <!-- Models Chips -->
                 <div class="space-y-1">
-                    <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Models</h2>
+                    <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">機種</h2>
                     <div class="flex overflow-x-auto gap-2 pb-2 no-scrollbar" id="filter-model-container">
                         <!-- Populated by JS -->
                     </div>
@@ -116,7 +116,7 @@
 
                 <!-- Storage Chips -->
                 <div class="space-y-1">
-                    <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Storage</h2>
+                    <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">容量</h2>
                     <div class="flex overflow-x-auto gap-2 pb-2 no-scrollbar" id="filter-storage-container">
                         <!-- Populated by JS -->
                     </div>
@@ -126,7 +126,7 @@
             <!-- Error Message -->
             <div id="error-message"
                 class="hidden bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6 text-sm">
-                <strong class="font-bold">Error:</strong> <span id="error-text">Failed to load data.</span>
+                <strong class="font-bold">エラー:</strong> <span id="error-text">データの読み込みに失敗しました。</span>
             </div>
 
             <!-- Loading -->
@@ -147,16 +147,16 @@
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-gray-50 border-b border-gray-200 sticky top-0">
                             <tr>
-                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider w-16">Image</th>
-                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Model</th>
-                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Storage</th>
-                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Carrier</th>
+                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider w-16">画像</th>
+                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">機種</th>
+                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">容量</th>
+                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">キャリア</th>
+                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">定価
+                                    (一括)</th>
                                 <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
-                                    Price (Sub)</th>
-                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">
-                                    Price (Main)</th>
-                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">
-                                    Link</th>
+                                    実質負担額</th>
+                                <th class="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">リンク
+                                </th>
                             </tr>
                         </thead>
                         <tbody id="desktop-product-list" class="divide-y divide-gray-100">
@@ -167,8 +167,8 @@
 
                 <!-- No Results -->
                 <div id="no-results" class="hidden text-center py-20 text-gray-400">
-                    <p class="font-bold">No items found.</p>
-                    <p class="text-sm">Try changing filters.</p>
+                    <p class="font-bold">条件に一致する商品が見つかりませんでした。</p>
+                    <p class="text-sm">条件を変更して再度お試しください。</p>
                 </div>
 
             </div>
@@ -254,14 +254,14 @@
             modelContainer.innerHTML = '';
             models.forEach(m => {
                 const btn = document.createElement('button');
-                btn.textContent = (m === 'All') ? 'All Models' : m.replace('iPhone ', '');
+                btn.textContent = (m === 'All') ? '全機種' : m.replace('iPhone ', '');
                 btn.className = `whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${m === selectedModel
                         ? 'bg-gray-900 text-white border-gray-900 shadow-md'
                         : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                     }`;
                 btn.onclick = () => {
                     selectedModel = m;
-                    updateChipStyles(modelContainer, m, 'All Models');
+                    updateChipStyles(modelContainer, m, '全機種');
                     render();
                 };
                 modelContainer.appendChild(btn);
@@ -279,14 +279,14 @@
             storageContainer.innerHTML = '';
             storages.forEach(s => {
                 const btn = document.createElement('button');
-                btn.textContent = (s === 'All') ? 'All Sizes' : s;
+                btn.textContent = (s === 'All') ? '全容量' : s;
                 btn.className = `whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${s === selectedStorage
                         ? 'bg-gray-900 text-white border-gray-900 shadow-md'
                         : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                     }`;
                 btn.onclick = () => {
                     selectedStorage = s;
-                    updateChipStyles(storageContainer, s, 'All Sizes');
+                    updateChipStyles(storageContainer, s, '全容量');
                     render();
                 };
                 storageContainer.appendChild(btn);
@@ -332,12 +332,12 @@
             if (mode === 'rent') {
                 modeRentBtn.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all shadow-sm bg-white text-blue-600";
                 modeBuyoutBtn.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all text-gray-500 hover:text-gray-700";
-                if (thPriceSub) thPriceSub.textContent = "定価";
-                if (thPriceMain) thPriceMain.textContent = "実質負担";
+                if (thPriceSub) thPriceSub.textContent = "定価 (一括)";
+                if (thPriceMain) thPriceMain.textContent = "実質負担額";
             } else {
                 modeRentBtn.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all text-gray-500 hover:text-gray-700";
                 modeBuyoutBtn.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all shadow-sm bg-white text-blue-600";
-                if (thPriceSub) thPriceSub.textContent = "実質負担";
+                if (thPriceSub) thPriceSub.textContent = "実質負担額";
                 if (thPriceMain) thPriceMain.textContent = "一括実質";
             }
 
@@ -386,7 +386,7 @@
                     mainPrice = item.price_effective_rent;
                     subPrice = item.price_gross;
                     mainLabel = '実質負担';
-                    subLabel = '定価';
+                    subLabel = '定価 (一括)';
                     if (item.program_exemption > 0) unitBadge = '返却P';
                 } else {
                     mainPrice = item.price_effective_buyout;
@@ -457,7 +457,7 @@
                     </td>
                     <td class="p-4 text-center">
                          <a href="${item.url}" target="_blank" class="inline-block text-blue-600 hover:text-blue-800 text-sm font-bold">
-                            View ->
+                            公式サイト
                         </a>
                     </td>
                 `;
@@ -466,14 +466,14 @@
         }
 
         function getCarrierColor(carrier) {
-            if (carrier === 'Rakuten') return 'bg-[#BF0087] text-white';
-            if (carrier === 'ahamo') return 'bg-[#28C842] text-white';
-            if (carrier === 'UQ mobile') return 'bg-[#E60012] text-white';
-            return 'bg-gray-500 text-white';
+            if (carrier === 'Rakuten') return 'bg-[#BF0087] text-white font-bold';
+            if (carrier === 'ahamo') return 'bg-[#28C842] text-white font-bold';
+            if (carrier === 'UQ mobile') return 'bg-[#E60012] text-white font-bold';
+            return 'bg-gray-500 text-white font-bold';
         }
 
         function getCarrierDisplayName(carrier) {
-            if (carrier === 'Rakuten') return 'Rakuten';
+            if (carrier === 'Rakuten') return '楽天モバイル';
             return carrier;
         }
 
