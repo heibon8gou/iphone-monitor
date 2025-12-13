@@ -4,175 +4,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iPhone Price Widget</title>
-    <!-- Tailwind CSS -->
+    <title>iPhone Monitor Widget</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
+        /* Transparent background for iframe embedding */
+        html,
         body {
+            margin: 0;
+            padding: 0;
             background-color: transparent;
-            font-family: 'Inter', sans-serif;
-        }
-
-        /* Custom scrollbar for mobile */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            /* IE and Edge */
-            scrollbar-width: none;
-            /* Firefox */
+            overflow: hidden;
+            /* Hide scrollbars */
         }
     </style>
 </head>
 
 <body>
-    <div id="widget-container" class="w-full max-w-6xl mx-auto p-4">
+    <div id="monitor-app" class="w-full">
         <!-- Loading State -->
-        <div id="loading" class="flex justify-center items-center h-40">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
-
-        <!-- Product Grid -->
-        <div id="product-list"
-            class="hidden flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible no-scrollbar">
-            <!-- Cards will be injected here -->
-        </div>
-
-        <!-- Error State -->
-        <div id="error-message" class="hidden text-center text-red-500 text-sm p-4 bg-red-50 rounded-lg">
-            <p>データの読み込みに失敗しました。</p>
+        <div class="flex justify-center items-center h-40">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-600"></div>
         </div>
     </div>
 
+    <!-- 1. Config -->
     <script>
-        async function initWidget() {
-            const container = document.getElementById('product-list');
-            const loading = document.getElementById('loading');
-            const errorEl = document.getElementById('error-message');
-
-            try {
-                const response = await fetch('./data.json');
-                if (!response.ok) throw new Error('Network response was not ok');
-                const data = await response.json();
-
-                // Logic:
-                // 1. Filter out items with no price
-                // 2. Sort by price_effective_rent (ASC)
-                // 3. Take top 4
-
-                let items = data.items.filter(i => i.price_effective_rent > 0);
-
-                // Sort by effective rent
-                items.sort((a, b) => a.price_effective_rent - b.price_effective_rent);
-
-                // Get unique models preference? Or just absolute cheapest?
-                // User said "お得な注目機種（例: 実質価格が安い順のトップ3）"
-                // Let's just take absolute top 4 cheapest items.
-                const topItems = items.slice(0, 4);
-
-                renderItems(topItems, container);
-
-                loading.classList.add('hidden');
-                container.classList.remove('hidden');
-
-            } catch (err) {
-                console.error(err);
-                loading.classList.add('hidden');
-                errorEl.classList.remove('hidden');
-            }
-        }
-
-        function renderItems(items, container) {
-            items.forEach((item, index) => {
-                const rank = index + 1;
-                const imgUrl = getProductImage(item.model);
-                const carrierClass = getCarrierColor(item.carrier);
-                const carrierName = getCarrierDisplayName(item.carrier);
-                const priceFormatted = (item.price_effective_rent).toLocaleString();
-
-                const cardHTML = `
-                    <div class="snap-center shrink-0 w-[260px] md:w-auto bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden relative flex flex-col">
-                        <!-- Rank Badge -->
-                        <div class="absolute top-0 left-0 bg-yellow-400 text-yellow-900 font-black px-3 py-1 rounded-br-lg z-10 shadow-sm text-sm">
-                            No.${rank}
-                        </div>
-
-                        <!-- Image Area -->
-                        <div class="p-4 flex justify-center bg-gray-50 h-40 items-center">
-                            <img src="${imgUrl}" onerror="this.onerror=null; this.src='https://placehold.co/200x240/eeeeee/333333/png?text=No+Image'; this.classList.add('opacity-50');" alt="${item.model}" class="h-full object-contain mix-blend-multiply">
-                        </div>
-
-                        <!-- Content -->
-                        <div class="p-4 flex flex-col flex-grow">
-                            <!-- Carrier -->
-                            <div class="mb-2">
-                                <span class="inline-block px-2 py-0.5 text-[10px] font-bold rounded ${carrierClass}">
-                                    ${carrierName}
-                                </span>
-                            </div>
-
-                            <!-- Model Name -->
-                            <h3 class="font-bold text-gray-800 text-sm mb-1 leading-tight">
-                                ${item.model}
-                                <span class="font-normal text-gray-500 ml-1 text-xs">${item.storage}</span>
-                            </h3>
-
-                            <!-- Price Section -->
-                            <div class="mt-auto pt-3">
-                                <div class="text-xs text-gray-500 mb-0.5">実質負担</div>
-                                <div class="flex items-baseline">
-                                    <span class="text-3xl font-black text-red-600 tracking-tight">¥${priceFormatted}</span>
-                                    <span class="text-xs text-red-500 ml-1 font-bold">〜</span>
-                                </div>
-                                <div class="text-[10px] text-gray-400 mt-1">
-                                    定価: ¥${item.price_gross.toLocaleString()}
-                                </div>
-                            </div>
-
-                            <!-- CTA -->
-                            <a href="${item.url}" target="_blank" class="mt-3 block w-full bg-gray-900 hover:bg-gray-800 text-white text-center text-xs font-bold py-2.5 rounded transition-colors">
-                                詳細を見る
-                            </a>
-                        </div>
-                    </div>
-                `;
-
-                container.innerHTML += cardHTML;
-            });
-        }
-
-        // --- Helpers (Copied/Adapted from index.html) ---
-
-        function getCarrierColor(carrier) {
-            if (carrier === 'Rakuten') return 'bg-[#BF0087] text-white';
-            if (carrier === 'ahamo') return 'bg-[#28C842] text-white';
-            if (carrier === 'UQ mobile') return 'bg-[#E60012] text-white';
-            return 'bg-gray-500 text-white';
-        }
-
-        function getCarrierDisplayName(carrier) {
-            if (carrier === 'Rakuten') return '楽天モバイル';
-            return carrier;
-        }
-
-        function getProductImage(model) {
-            let clean = model.toLowerCase();
-            if (clean.includes('se') && (clean.includes('3') || clean.includes('第3'))) {
-                clean = 'iphonese3';
-            } else {
-                clean = clean.replace(/[^a-z0-9]/g, '');
-            }
-            return './images/' + clean + '.png';
-        }
-
-        initWidget();
+        window.iPhoneMonitorConfig = {
+            baseUrl: "./"
+        };
     </script>
+
+    <!-- 2. Iframe Resizer -->
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.2/iframeResizer.contentWindow.min.js"></script>
+
+    <!-- 3. Main App -->
+    <script src="./js/app.js"></script>
 </body>
 
 </html>
