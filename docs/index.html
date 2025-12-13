@@ -45,15 +45,15 @@
                 </div>
             </div>
 
-            <!-- Price Mode Toggle (Tabs) -->
-            <div class="px-4 pb-3">
-                <div class="bg-gray-100 p-1 rounded-xl flex shadow-inner max-w-md mx-auto">
+            <!-- Price Mode Toggle (Segmented Control) -->
+            <div class="px-4 pb-4 text-center">
+                <div class="bg-[#e5e7eb] p-1 rounded-full inline-flex relative">
                     <button id="mode-rent" onclick="setPriceMode('rent')"
-                        class="flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all shadow-sm bg-white text-gray-900">
+                        class="px-6 py-1.5 text-sm font-bold rounded-full transition-all shadow-sm bg-white text-black">
                         実質負担 (2年返却)
                     </button>
                     <button id="mode-buyout" onclick="setPriceMode('buyout')"
-                        class="flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all text-gray-500 hover:text-gray-700">
+                        class="px-6 py-1.5 text-sm font-bold rounded-full transition-all text-gray-500 hover:text-gray-900">
                         一括購入
                     </button>
                 </div>
@@ -329,18 +329,19 @@
 
         function setPriceMode(mode) {
             priceMode = mode;
+            // Toggle Button Styles (Segmented Control)
+            const activeClass = "px-6 py-1.5 text-sm font-bold rounded-full transition-all shadow-sm bg-white text-black";
+            const inactiveClass = "px-6 py-1.5 text-sm font-bold rounded-full transition-all text-gray-500 hover:text-gray-900";
 
-            // Toggle Button Styles
             if (mode === 'rent') {
-                modeRentBtn.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all shadow-sm bg-white text-blue-600";
-                modeBuyoutBtn.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all text-gray-500 hover:text-gray-700";
+                modeRentBtn.className = activeClass;
+                modeBuyoutBtn.className = inactiveClass;
                 if (thPriceDisplay) thPriceDisplay.textContent = "実質負担額";
             } else {
-                modeRentBtn.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all text-gray-500 hover:text-gray-700";
-                modeBuyoutBtn.className = "flex-1 py-2 text-xs md:text-sm font-bold rounded-lg transition-all shadow-sm bg-white text-blue-600";
+                modeRentBtn.className = inactiveClass;
+                modeBuyoutBtn.className = activeClass;
                 if (thPriceDisplay) thPriceDisplay.textContent = "一括価格";
             }
-
             markLowestPrices(allData);
             render();
         }
