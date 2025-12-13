@@ -73,19 +73,19 @@ function renderAppStructure() {
                 <div class="flex flex-wrap gap-3" id="carrier-filters">
                     <label class="cursor-pointer select-none group">
                         <input type="checkbox" class="filter-carrier peer hidden" value="Rakuten" checked>
-                        <div class="h-12 px-4 rounded-xl border-2 border-transparent bg-gray-50 flex items-center justify-center transition-all opacity-50 grayscale hover:opacity-75 peer-checked:opacity-100 peer-checked:grayscale-0 peer-checked:border-pink-500 peer-checked:bg-white peer-checked:shadow-md">
+                        <div class="h-12 w-28 rounded-xl border-2 border-transparent bg-gray-50 flex items-center justify-center transition-all opacity-50 grayscale hover:opacity-75 peer-checked:opacity-100 peer-checked:grayscale-0 peer-checked:border-pink-500 peer-checked:bg-white peer-checked:shadow-md">
                             <img src="${imgRakuten}" alt="楽天モバイル" class="h-6 w-auto object-contain">
                         </div>
                     </label>
                     <label class="cursor-pointer select-none group">
                         <input type="checkbox" class="filter-carrier peer hidden" value="ahamo" checked>
-                        <div class="h-12 px-4 rounded-xl border-2 border-transparent bg-gray-50 flex items-center justify-center transition-all opacity-50 grayscale hover:opacity-75 peer-checked:opacity-100 peer-checked:grayscale-0 peer-checked:border-green-500 peer-checked:bg-white peer-checked:shadow-md">
+                        <div class="h-12 w-28 rounded-xl border-2 border-transparent bg-gray-50 flex items-center justify-center transition-all opacity-50 grayscale hover:opacity-75 peer-checked:opacity-100 peer-checked:grayscale-0 peer-checked:border-green-500 peer-checked:bg-white peer-checked:shadow-md">
                             <img src="${imgAhamo}" alt="ahamo" class="h-6 w-auto object-contain">
                         </div>
                     </label>
                     <label class="cursor-pointer select-none group">
                         <input type="checkbox" class="filter-carrier peer hidden" value="UQ mobile" checked>
-                        <div class="h-12 px-4 rounded-xl border-2 border-transparent bg-gray-50 flex items-center justify-center transition-all opacity-50 grayscale hover:opacity-75 peer-checked:opacity-100 peer-checked:grayscale-0 peer-checked:border-blue-500 peer-checked:bg-white peer-checked:shadow-md">
+                        <div class="h-12 w-28 rounded-xl border-2 border-transparent bg-gray-50 flex items-center justify-center transition-all opacity-50 grayscale hover:opacity-75 peer-checked:opacity-100 peer-checked:grayscale-0 peer-checked:border-blue-500 peer-checked:bg-white peer-checked:shadow-md">
                             <img src="${imgUQ}" alt="UQ mobile" class="h-6 w-auto object-contain">
                         </div>
                     </label>
