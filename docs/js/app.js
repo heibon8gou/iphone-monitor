@@ -95,13 +95,13 @@ function renderAppStructure() {
             <!-- Models -->
             <div class="space-y-2">
                 <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">機種</h3>
-                <div class="flex overflow-x-auto gap-2 pb-2 no-scrollbar" id="filter-model-container"></div>
+                <div class="flex gap-3 overflow-x-auto pb-4 px-1 no-scrollbar md:flex-wrap" id="filter-model-container"></div>
             </div>
 
             <!-- Storage -->
             <div class="space-y-2">
                 <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">ストレージ容量</h3>
-                <div class="flex overflow-x-auto gap-2 pb-2 no-scrollbar" id="filter-storage-container"></div>
+                <div class="flex gap-3 overflow-x-auto pb-4 px-1 no-scrollbar md:flex-wrap" id="filter-storage-container"></div>
             </div>
 
             <!-- Sort -->
@@ -289,7 +289,7 @@ function populateFilterChips(items) {
 }
 
 function getChipClass(isSelected) {
-    return `whitespace - nowrap px - 4 py - 1.5 rounded - full text - sm font - bold transition - all border ${isSelected
+    return `flex-shrink-0 whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${isSelected
         ? 'bg-gray-900 text-white border-gray-900 shadow-md transform scale-105'
         : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
         } `;
