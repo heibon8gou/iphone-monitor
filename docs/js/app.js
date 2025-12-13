@@ -50,7 +50,7 @@ function renderAppStructure() {
     appContainer.innerHTML = `
         <!-- Header / Toggle -->
         <div class="mb-10 text-center space-y-6">
-            <h2 class="text-2xl font-bold text-gray-900">価格比較ツール</h2>
+
             <!-- Price Mode Toggle -->
             <div class="inline-block">
                 <div class="bg-[#e5e7eb] p-1 rounded-full inline-flex relative w-[340px] h-[40px] items-center">
