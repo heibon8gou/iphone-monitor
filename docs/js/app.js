@@ -1,7 +1,12 @@
+```javascript
 // Config & Base URL
 const config = window.iPhoneMonitorConfig || { baseUrl: './' };
 // Ensure baseUrl ends with /
 const BASE_URL = config.baseUrl.endsWith('/') ? config.baseUrl : config.baseUrl + '/';
+
+// Constants
+const INITIAL_DISPLAY_COUNT = 10;
+const LOAD_INCREMENT = 10;
 
 // State
 let allData = [];
@@ -10,10 +15,11 @@ let selectedModel = 'All';
 let selectedStorage = 'All';
 let priceMode = 'rent'; // 'rent' or 'buyout'
 let sortOrder = 'price_asc'; // 'price_asc', 'price_desc', 'model_newest'
+let displayedCount = INITIAL_DISPLAY_COUNT;
 
 // DOM Elements Reference
 let appContainer;
-let updatedAtEl, errorMessageEl, errorTextEl, loadingEl, productContainerEl, mobileListEl, noResultsEl;
+let updatedAtEl, errorMessageEl, errorTextEl, loadingEl, productContainerEl, mobileListEl, noResultsEl, loadMoreBtn;
 // let carrierCheckboxes, modelContainer, storageContainer; // Re-queried dynamically
 let modeRentBtn, modeBuyoutBtn, sortSelect, thPriceDisplay;
 
@@ -43,7 +49,7 @@ function renderAppStructure() {
     const imgUQ = BASE_URL + 'images/logo_uq.png';
 
     appContainer.innerHTML = `
-        <!-- Header / Toggle -->
+    < !--Header / Toggle-- >
         <div class="mb-10 text-center space-y-6">
             <h2 class="text-2xl font-bold text-gray-900">価格比較ツール</h2>
             <!-- Price Mode Toggle -->
@@ -60,7 +66,7 @@ function renderAppStructure() {
             </div>
         </div>
 
-        <!-- Filters Section -->
+        <!--Filters Section-- >
         <div class="mb-8 space-y-6 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
             <!-- Carriers -->
             <div class="space-y-2">
@@ -116,25 +122,33 @@ function renderAppStructure() {
             </div>
         </div>
 
-        <!-- Error -->
+        <!--Error -->
         <div id="error-message" class="hidden bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6 text-sm">
             <strong class="font-bold">エラー:</strong> <span id="error-text">データの読み込みに失敗しました。</span>
         </div>
 
-        <!-- Loading -->
+        <!--Loading -->
         <div id="loading" class="text-center py-20">
             <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900 mx-auto"></div>
         </div>
 
-        <!-- Product Grid -->
-        <div id="product-container" class="hidden">
-            <div id="mobile-list" class="grid grid-cols-1 gap-6"></div>
-            <div id="no-results" class="hidden text-center py-20">
-                <p class="text-gray-500 font-bold mb-2">条件に一致するiPhoneが見つかりませんでした</p>
-                <p class="text-gray-400 text-sm">フィルターを変更して再度お試しください</p>
-            </div>
+        <!--Product Grid-- >
+    <div id="product-container" class="hidden">
+        <div id="mobile-list" class="grid grid-cols-1 gap-6"></div>
+
+        <!-- Load More Button -->
+        <div class="mt-8 text-center">
+            <button id="load-more-btn" class="hidden w-full md:w-auto md:px-12 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors shadow-sm active:scale-95">
+                もっと見る (+10件)
+            </button>
         </div>
-    `;
+
+        <div id="no-results" class="hidden text-center py-20">
+            <p class="text-gray-500 font-bold mb-2">条件に一致するiPhoneが見つかりませんでした</p>
+            <p class="text-gray-400 text-sm">フィルターを変更して再度お試しください</p>
+        </div>
+    </div>
+`;
 }
 
 function grabElements() {
@@ -148,6 +162,7 @@ function grabElements() {
     productContainerEl = document.getElementById('product-container');
     mobileListEl = document.getElementById('mobile-list');
     noResultsEl = document.getElementById('no-results');
+    loadMoreBtn = document.getElementById('load-more-btn');
 
     modeRentBtn = document.getElementById('mode-rent');
     modeBuyoutBtn = document.getElementById('mode-buyout');
@@ -163,6 +178,7 @@ function setupEventListeners() {
             carriers = Array.from(carrierCheckboxes)
                 .filter(c => c.checked)
                 .map(c => c.value);
+            resetDisplayCount();
             render();
         });
     });
@@ -170,18 +186,30 @@ function setupEventListeners() {
     if (sortSelect) {
         sortSelect.addEventListener('change', (e) => {
             sortOrder = e.target.value;
+            resetDisplayCount();
             render();
         });
     }
 
     if (modeRentBtn) modeRentBtn.onclick = () => setPriceMode('rent');
     if (modeBuyoutBtn) modeBuyoutBtn.onclick = () => setPriceMode('buyout');
+
+    if (loadMoreBtn) {
+        loadMoreBtn.onclick = () => {
+            displayedCount += LOAD_INCREMENT;
+            render();
+        };
+    }
+}
+
+function resetDisplayCount() {
+    displayedCount = INITIAL_DISPLAY_COUNT;
 }
 
 async function fetchData() {
     try {
         const response = await fetch(BASE_URL + 'data.json');
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${ response.status } `);
         const data = await response.json();
 
         if (updatedAtEl) updatedAtEl.textContent = data.updated_at || '不明';
@@ -232,6 +260,7 @@ function populateFilterChips(items) {
         btn.onclick = () => {
             selectedModel = m;
             updateChipStyles(modelContainer, m, '全て');
+            resetDisplayCount();
             render();
         };
         modelContainer.appendChild(btn);
@@ -253,6 +282,7 @@ function populateFilterChips(items) {
         btn.onclick = () => {
             selectedStorage = s;
             updateChipStyles(storageContainer, s, '全て');
+            resetDisplayCount();
             render();
         };
         storageContainer.appendChild(btn);
@@ -260,9 +290,11 @@ function populateFilterChips(items) {
 }
 
 function getChipClass(isSelected) {
-    return `whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${isSelected
+    return `whitespace - nowrap px - 4 py - 1.5 rounded - full text - sm font - bold transition - all border ${
+    isSelected
         ? 'bg-gray-900 text-white border-gray-900 shadow-md transform scale-105'
-        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`;
+        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+} `;
 }
 
 function updateChipStyles(container, selectedValue, allLabel) {
@@ -277,7 +309,7 @@ function updateChipStyles(container, selectedValue, allLabel) {
 function markLowestPrices(items) {
     const groups = {};
     items.forEach(item => {
-        const key = `${item.model}-${item.storage}`;
+        const key = `${ item.model } -${ item.storage } `;
         if (!groups[key]) groups[key] = [];
         groups[key].push(item);
     });
@@ -316,6 +348,7 @@ function setPriceMode(mode) {
     }
 
     markLowestPrices(allData);
+    // Don't reset display count on mode toggle, user might want to see same position
     render();
 }
 
@@ -350,13 +383,28 @@ function render() {
     if (filtered.length === 0) {
         if (productContainerEl) productContainerEl.classList.add('hidden');
         if (noResultsEl) noResultsEl.classList.remove('hidden');
+        if (loadMoreBtn) loadMoreBtn.classList.add('hidden'); // Hide load more if no results
         return;
     } else {
         if (productContainerEl) productContainerEl.classList.remove('hidden');
         if (noResultsEl) noResultsEl.classList.add('hidden');
     }
 
-    filtered.forEach(item => {
+    // Load More Logic
+    const hasMore = filtered.length > displayedCount;
+    if (loadMoreBtn) {
+        if (hasMore) {
+            loadMoreBtn.classList.remove('hidden');
+            loadMoreBtn.textContent = `もっと見る（あと${ filtered.length - displayedCount } 件）`;
+        } else {
+            loadMoreBtn.classList.add('hidden');
+        }
+    }
+
+    // Slice for pagination
+    const visibleItems = filtered.slice(0, displayedCount);
+
+    visibleItems.forEach(item => {
         const imgUrl = getProductImage(item.model); // This is placeholder, no change needed
         const carrierName = getCarrierDisplayName(item.carrier);
         const carrierLogo = getCarrierLogoPath(item.carrier);
@@ -373,11 +421,11 @@ function render() {
         }
 
         const fmtPrice = displayPrice.toLocaleString();
-        const lowestBadge = isLowest ? `<div class="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-[10px] font-black px-2 py-0.5 rounded shadow-sm z-10">最安</div>` : '';
+        const lowestBadge = isLowest ? `< div class="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-[10px] font-black px-2 py-0.5 rounded shadow-sm z-10" > 最安</div > ` : '';
 
         const cardHTML = `
-        <div class="flex flex-col gap-3 p-5 border border-gray-100 rounded-2xl bg-white shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-blue-200 transition-all duration-300 relative overflow-hidden group">
-            ${lowestBadge}
+    < div class="flex flex-col gap-3 p-5 border border-gray-100 rounded-2xl bg-white shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-blue-200 transition-all duration-300 relative overflow-hidden group" >
+        ${ lowestBadge }
             <div class="flex gap-4 items-start">
                 <div class="w-20 h-24 flex-shrink-0 bg-gray-50 rounded-xl flex items-center justify-center p-2 group-hover:bg-blue-50/50 transition-colors">
                     <img src="${imgUrl}" class="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-110">
@@ -405,8 +453,8 @@ function render() {
                 公式サイトで見る
                 <svg class="w-4 h-4 transition-transform group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
             </a>
-        </div>
-        `;
+        </div >
+    `;
         mobileListEl.insertAdjacentHTML('beforeend', cardHTML);
     });
 }
