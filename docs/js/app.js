@@ -305,12 +305,12 @@ function populateFilterChips(items) {
 }
 
 function getChipClass(isSelected) {
-    const baseClass = "flex-shrink-0 whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ease-out active:scale-95 border outline-none ring-0";
+    const baseClass = "flex-shrink-0 whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ease-out active:scale-95 outline-none";
 
     if (isSelected) {
-        return `${baseClass} bg-slate-900 text-white border-slate-900 shadow-md scale-105`;
+        return `${baseClass} bg-slate-900 text-white shadow-md scale-105`;
     } else {
-        return `${baseClass} bg-white text-slate-600 border-slate-200 hover:bg-slate-50 scale-100`;
+        return `${baseClass} bg-white text-slate-600 ring-1 ring-inset ring-slate-200 hover:bg-slate-50 scale-100`;
     }
 }
 
