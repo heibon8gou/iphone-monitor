@@ -427,10 +427,10 @@ function render() { // Filter & Sort
         }
 
         const fmtPrice = displayPrice.toLocaleString();
-        const lowestBadge = isLowest ? `< div class="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-[10px] font-black px-2 py-0.5 rounded shadow-sm z-10" > 最安</div > ` : '';
+        const lowestBadge = isLowest ? `<div class="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-[10px] font-black px-2 py-0.5 rounded shadow-sm z-10">最安</div>` : '';
 
         const cardHTML = `
-    < div class="flex flex-col gap-3 p-5 border border-gray-100 rounded-2xl bg-white shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-blue-200 transition-all duration-300 relative overflow-hidden group" >
+    <div class="flex flex-col gap-3 p-5 border border-gray-100 rounded-2xl bg-white shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-blue-200 transition-all duration-300 relative overflow-hidden group">
         ${lowestBadge}
             <div class="flex gap-4 items-start">
                 <div class="w-20 h-24 flex-shrink-0 bg-gray-50 rounded-xl flex items-center justify-center p-2 group-hover:bg-blue-50/50 transition-colors">
@@ -459,7 +459,7 @@ function render() { // Filter & Sort
                 公式サイトで見る
                 <svg class="w-4 h-4 transition-transform group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
             </a>
-        </div >
+        </div>
     `;
         mobileListEl.insertAdjacentHTML('beforeend', cardHTML);
     });
