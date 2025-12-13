@@ -391,40 +391,39 @@
                 const fmtPrice = displayPrice.toLocaleString();
 
                 // --- Mobile Card ---
-                const lowestBadge = isLowest ? `<div class="absolute -top-1 -left-1 bg-yellow-400 text-yellow-900 text-[10px] font-black px-2 py-0.5 rounded shadow-sm z-10">最安</div>` : '';
+                const lowestBadge = isLowest ? `<div class="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-[10px] font-black px-2 py-0.5 rounded shadow-sm z-10">最安</div>` : '';
 
                 const cardHTML = `
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 relative overflow-hidden">
+                <div class="flex flex-col gap-3 p-4 border border-gray-200 rounded-2xl bg-white shadow-sm relative overflow-hidden">
                     ${lowestBadge}
-                    <div class="flex gap-4 mb-3">
+                    <div class="flex gap-4 items-start">
                         <!-- Image -->
-                        <div class="w-20 h-auto flex-shrink-0 bg-gray-50 rounded-lg flex items-center justify-center p-1">
+                        <div class="w-20 h-24 flex-shrink-0 bg-gray-50 rounded-lg flex items-center justify-center p-2">
                             <img src="${imgUrl}" class="w-full h-full object-contain mix-blend-multiply">
                         </div>
-                        <!-- Header Info -->
-                        <div class="flex-grow">
-                            <div class="flex justify-between items-start mb-1">
+                        <!-- Header Info & Price -->
+                        <div class="flex-grow min-w-0">
+                            <div class="flex justify-between items-start mb-2">
                                 <div>
                                     <h3 class="text-base font-bold text-gray-900 leading-tight">${item.model}</h3>
-                                    <p class="text-xs text-gray-500">${item.storage}</p>
+                                    <p class="text-xs text-gray-500 font-medium mt-0.5">${item.storage}</p>
                                 </div>
-                                </div>
-                                <img src="${getCarrierLogoPath(item.carrier)}" alt="${carrierName}" class="h-5 w-auto object-contain">
+                                <img src="${getCarrierLogoPath(item.carrier)}" alt="${carrierName}" class="h-8 w-24 object-contain object-right">
                             </div>
                             
                             <!-- Price Block -->
-                            <div class="mt-2">
+                            <div>
                                 <div class="flex items-baseline gap-1">
-                                    <span class="text-xs text-gray-400 font-medium">${displayLabel}</span>
+                                    <span class="text-xs text-gray-400 font-bold">${displayLabel}</span>
                                     <span class="text-3xl font-black text-red-600 tracking-tighter">¥${fmtPrice}</span>
-                                    ${unitBadge ? `<span class="text-[10px] text-red-500 border border-red-200 px-1 rounded">${unitBadge}</span>` : ''}
                                 </div>
+                                ${unitBadge ? `<div class="mt-1"><span class="text-[10px] text-red-600 bg-red-50 border border-red-100 px-1.5 py-0.5 rounded font-bold">${unitBadge}</span></div>` : ''}
                             </div>
                         </div>
                     </div>
                 
                     <!-- Action -->
-                    <a href="${item.url}" target="_blank" class="block w-full bg-slate-900 text-white text-center text-sm font-bold py-3 rounded-xl shadow hover:bg-slate-800 transition active:scale-95">
+                    <a href="${item.url}" target="_blank" class="block w-full bg-slate-900 text-white text-center text-sm font-bold py-3 rounded-xl shadow-sm hover:bg-slate-800 transition active:scale-95">
                         公式サイトで見る
                     </a>
                 </div>
