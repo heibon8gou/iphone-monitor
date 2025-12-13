@@ -289,9 +289,9 @@ function populateFilterChips(items) {
 }
 
 function getChipClass(isSelected) {
-    return `flex-shrink-0 whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${isSelected
-        ? 'bg-gray-900 text-white border-gray-900 shadow-md transform scale-105'
-        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+    return `flex-shrink-0 whitespace-nowrap px-6 py-2.5 rounded-2xl text-sm font-bold transition-all border ${isSelected
+        ? 'bg-gray-900 text-white border-gray-900'
+        : 'bg-white text-gray-900 border-gray-200 hover:bg-gray-50'
         } `;
 }
 
