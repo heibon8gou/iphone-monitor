@@ -352,7 +352,7 @@ function setPriceMode(mode) {
     render();
 }
 
-function render() {
+function render() { // Filter & Sort
     let filtered = allData.filter(item => {
         if (!carriers.includes(item.carrier)) return false;
         if (selectedModel !== 'All' && item.model !== selectedModel) return false;
@@ -377,13 +377,21 @@ function render() {
             return sortOrder === 'price_asc' ? valA - valB : valB - valA;
         }
     });
+    
+    // Store current filtered data for Load More reference
+    // Note: We might want a global variable for this if we were strictly following the "Step 2C" of the prompt,
+    // but simply using 'filtered' here works because this function re-runs on filter changes.
+    // However, to be extra safe and follow the 'currentFilteredData' pattern requested:
+    const currentFilteredData = filtered;
+
+    console.log('Rendering items:', displayedCount, 'Total:', currentFilteredData.length);
 
     if (mobileListEl) mobileListEl.innerHTML = '';
 
-    if (filtered.length === 0) {
+    if (currentFilteredData.length === 0) {
         if (productContainerEl) productContainerEl.classList.add('hidden');
         if (noResultsEl) noResultsEl.classList.remove('hidden');
-        if (loadMoreBtn) loadMoreBtn.classList.add('hidden'); // Hide load more if no results
+        if (loadMoreBtn) loadMoreBtn.classList.add('hidden'); 
         return;
     } else {
         if (productContainerEl) productContainerEl.classList.remove('hidden');
@@ -391,21 +399,21 @@ function render() {
     }
 
     // Load More Logic
-    const hasMore = filtered.length > displayedCount;
+    const hasMore = currentFilteredData.length > displayedCount;
     if (loadMoreBtn) {
         if (hasMore) {
             loadMoreBtn.classList.remove('hidden');
-            loadMoreBtn.textContent = `もっと見る（あと${ filtered.length - displayedCount } 件）`;
+            loadMoreBtn.textContent = `もっと見る（あと${ currentFilteredData.length - displayedCount } 件）`;
         } else {
             loadMoreBtn.classList.add('hidden');
         }
     }
 
     // Slice for pagination
-    const visibleItems = filtered.slice(0, displayedCount);
+    const visibleItems = currentFilteredData.slice(0, displayedCount);
 
     visibleItems.forEach(item => {
-        const imgUrl = getProductImage(item.model); // This is placeholder, no change needed
+        const imgUrl = getProductImage(item.model); 
         const carrierName = getCarrierDisplayName(item.carrier);
         const carrierLogo = getCarrierLogoPath(item.carrier);
         const isLowest = item.isLowest;
