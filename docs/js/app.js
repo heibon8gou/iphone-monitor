@@ -1,3 +1,8 @@
+// Config & Base URL
+const config = window.iPhoneMonitorConfig || { baseUrl: './' };
+// Ensure baseUrl ends with /
+const BASE_URL = config.baseUrl.endsWith('/') ? config.baseUrl : config.baseUrl + '/';
+
 // State
 let allData = [];
 let carriers = ['Rakuten', 'ahamo', 'UQ mobile'];
@@ -6,15 +11,137 @@ let selectedStorage = 'All';
 let priceMode = 'rent'; // 'rent' or 'buyout'
 let sortOrder = 'price_asc'; // 'price_asc', 'price_desc', 'model_newest'
 
-// DOM Elements
+// DOM Elements Reference
+let appContainer;
 let updatedAtEl, errorMessageEl, errorTextEl, loadingEl, productContainerEl, mobileListEl, noResultsEl;
-let carrierCheckboxes, modelContainer, storageContainer;
+// let carrierCheckboxes, modelContainer, storageContainer; // Re-queried dynamically
 let modeRentBtn, modeBuyoutBtn, sortSelect, thPriceDisplay;
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
-    // Grab Elements
-    updatedAtEl = document.getElementById('updated-at');
+    appContainer = document.getElementById('monitor-app');
+    if (!appContainer) {
+        console.error('iPhone Monitor: #monitor-app container not found.');
+        return;
+    }
+
+    // 1. Inject HTML Structure
+    renderAppStructure();
+
+    // 2. Grab Elements
+    grabElements();
+
+    // 3. Fetch Data & Setup
+    fetchData();
+    setupEventListeners();
+});
+
+function renderAppStructure() {
+    // Images with Base URL
+    const imgRakuten = BASE_URL + 'images/logo_rakuten.png';
+    const imgAhamo = BASE_URL + 'images/logo_ahamo.png';
+    const imgUQ = BASE_URL + 'images/logo_uq.png';
+
+    appContainer.innerHTML = `
+        <!-- Header / Toggle -->
+        <div class="mb-10 text-center space-y-6">
+            <h2 class="text-2xl font-bold text-gray-900">価格比較ツール</h2>
+            <!-- Price Mode Toggle -->
+            <div class="inline-block">
+                <div class="bg-[#e5e7eb] p-1 rounded-full inline-flex relative w-[340px] h-[40px] items-center">
+                    <div id="toggle-bg" class="absolute left-1 top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-full shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]"></div>
+                    <button id="mode-rent" class="relative z-10 w-1/2 h-full text-sm font-bold rounded-full transition-colors duration-300 flex items-center justify-center text-black">
+                        実質負担 (2年返却)
+                    </button>
+                    <button id="mode-buyout" class="relative z-10 w-1/2 h-full text-sm font-bold rounded-full transition-colors duration-300 flex items-center justify-center text-gray-500 hover:text-gray-900">
+                        一括購入
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="mb-8 space-y-6 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+            <!-- Carriers -->
+            <div class="space-y-2">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">キャリア</h3>
+                <div class="flex flex-wrap gap-3" id="carrier-filters">
+                    <label class="cursor-pointer select-none group">
+                        <input type="checkbox" class="filter-carrier peer hidden" value="Rakuten" checked>
+                        <div class="h-12 px-4 rounded-xl border-2 border-transparent bg-gray-50 flex items-center justify-center transition-all opacity-50 grayscale hover:opacity-75 peer-checked:opacity-100 peer-checked:grayscale-0 peer-checked:border-pink-500 peer-checked:bg-white peer-checked:shadow-md">
+                            <img src="${imgRakuten}" alt="楽天モバイル" class="h-6 w-auto object-contain">
+                        </div>
+                    </label>
+                    <label class="cursor-pointer select-none group">
+                        <input type="checkbox" class="filter-carrier peer hidden" value="ahamo" checked>
+                        <div class="h-12 px-4 rounded-xl border-2 border-transparent bg-gray-50 flex items-center justify-center transition-all opacity-50 grayscale hover:opacity-75 peer-checked:opacity-100 peer-checked:grayscale-0 peer-checked:border-green-500 peer-checked:bg-white peer-checked:shadow-md">
+                            <img src="${imgAhamo}" alt="ahamo" class="h-6 w-auto object-contain">
+                        </div>
+                    </label>
+                    <label class="cursor-pointer select-none group">
+                        <input type="checkbox" class="filter-carrier peer hidden" value="UQ mobile" checked>
+                        <div class="h-12 px-4 rounded-xl border-2 border-transparent bg-gray-50 flex items-center justify-center transition-all opacity-50 grayscale hover:opacity-75 peer-checked:opacity-100 peer-checked:grayscale-0 peer-checked:border-blue-500 peer-checked:bg-white peer-checked:shadow-md">
+                            <img src="${imgUQ}" alt="UQ mobile" class="h-6 w-auto object-contain">
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Models -->
+            <div class="space-y-2">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">機種</h3>
+                <div class="flex overflow-x-auto gap-2 pb-2 no-scrollbar" id="filter-model-container"></div>
+            </div>
+
+            <!-- Storage -->
+            <div class="space-y-2">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">ストレージ容量</h3>
+                <div class="flex overflow-x-auto gap-2 pb-2 no-scrollbar" id="filter-storage-container"></div>
+            </div>
+
+            <!-- Sort -->
+             <div class="flex justify-end pt-2 border-t border-gray-100">
+                <div class="relative">
+                    <select id="sort-select" class="appearance-none bg-white border border-gray-200 text-gray-700 py-2 pl-4 pr-10 rounded-lg shadow-sm text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer">
+                        <option value="price_asc">価格が安い順</option>
+                        <option value="price_desc">価格が高い順</option>
+                        <option value="model_newest">新しい機種順</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error -->
+        <div id="error-message" class="hidden bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6 text-sm">
+            <strong class="font-bold">エラー:</strong> <span id="error-text">データの読み込みに失敗しました。</span>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="text-center py-20">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900 mx-auto"></div>
+        </div>
+
+        <!-- Product Grid -->
+        <div id="product-container" class="hidden">
+            <div id="mobile-list" class="grid grid-cols-1 gap-6"></div>
+            <div id="no-results" class="hidden text-center py-20">
+                <p class="text-gray-500 font-bold mb-2">条件に一致するiPhoneが見つかりませんでした</p>
+                <p class="text-gray-400 text-sm">フィルターを変更して再度お試しください</p>
+            </div>
+        </div>
+    `;
+}
+
+function grabElements() {
+    updatedAtEl = document.getElementById('updated-at'); // Note: This might be outside #monitor-app in LP, but commonly user might want it inside. In current LP it is in Footer. We should PROBABLY not rely on it being present, or try to find it.
+    // In strict embed mode, updated-at in footer won't exist.
+    // I'll skip updating external updated-at if not found.
+
     errorMessageEl = document.getElementById('error-message');
     errorTextEl = document.getElementById('error-text');
     loadingEl = document.getElementById('loading');
@@ -22,22 +149,15 @@ document.addEventListener('DOMContentLoaded', () => {
     mobileListEl = document.getElementById('mobile-list');
     noResultsEl = document.getElementById('no-results');
 
-    carrierCheckboxes = document.querySelectorAll('.filter-carrier');
-    modelContainer = document.getElementById('filter-model-container');
-    storageContainer = document.getElementById('filter-storage-container');
-
     modeRentBtn = document.getElementById('mode-rent');
     modeBuyoutBtn = document.getElementById('mode-buyout');
     sortSelect = document.getElementById('sort-select');
 
-    thPriceDisplay = document.getElementById('th-price-display'); // Might be null if table is removed
-
-    fetchData();
-    setupEventListeners();
-});
+    // Checkboxes are now in the DOM
+}
 
 function setupEventListeners() {
-    // Carrier Filter
+    const carrierCheckboxes = document.querySelectorAll('.filter-carrier');
     carrierCheckboxes.forEach(cb => {
         cb.addEventListener('change', () => {
             carriers = Array.from(carrierCheckboxes)
@@ -47,22 +167,25 @@ function setupEventListeners() {
         });
     });
 
-    // Sort Change
     if (sortSelect) {
         sortSelect.addEventListener('change', (e) => {
             sortOrder = e.target.value;
             render();
         });
     }
+
+    if (modeRentBtn) modeRentBtn.onclick = () => setPriceMode('rent');
+    if (modeBuyoutBtn) modeBuyoutBtn.onclick = () => setPriceMode('buyout');
 }
 
 async function fetchData() {
     try {
-        const response = await fetch('./data.json');
+        const response = await fetch(BASE_URL + 'data.json');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
 
         if (updatedAtEl) updatedAtEl.textContent = data.updated_at || '不明';
+
         allData = data.items;
 
         populateFilterChips(allData);
@@ -81,6 +204,9 @@ async function fetchData() {
 }
 
 function populateFilterChips(items) {
+    const modelContainer = document.getElementById('filter-model-container');
+    const storageContainer = document.getElementById('filter-storage-container');
+
     if (!modelContainer || !storageContainer) return;
 
     // --- Models ---
@@ -96,16 +222,13 @@ function populateFilterChips(items) {
         if (numA !== numB) return numB - numA; // Descending
         return a.localeCompare(b);
     });
-    models.unshift('All'); // Add All option
+    models.unshift('All');
 
     modelContainer.innerHTML = '';
     models.forEach(m => {
         const btn = document.createElement('button');
         btn.textContent = (m === 'All') ? '全て' : m.replace('iPhone ', '');
-        btn.className = `whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${m === selectedModel
-            ? 'bg-gray-900 text-white border-gray-900 shadow-md'
-            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-            }`;
+        btn.className = getChipClass(m === selectedModel);
         btn.onclick = () => {
             selectedModel = m;
             updateChipStyles(modelContainer, m, '全て');
@@ -115,7 +238,6 @@ function populateFilterChips(items) {
     });
 
     // --- Storage ---
-    // Sort logic
     const storages = [...new Set(items.map(i => i.storage))];
     storages.sort((a, b) => {
         const parse = (s) => (s.includes('TB') ? parseInt(s) * 1024 : parseInt(s) || 9999);
@@ -127,10 +249,7 @@ function populateFilterChips(items) {
     storages.forEach(s => {
         const btn = document.createElement('button');
         btn.textContent = (s === 'All') ? '全て' : s;
-        btn.className = `whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${s === selectedStorage
-            ? 'bg-gray-900 text-white border-gray-900 shadow-md'
-            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-            }`;
+        btn.className = getChipClass(s === selectedStorage);
         btn.onclick = () => {
             selectedStorage = s;
             updateChipStyles(storageContainer, s, '全て');
@@ -140,22 +259,22 @@ function populateFilterChips(items) {
     });
 }
 
+function getChipClass(isSelected) {
+    return `whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${isSelected
+        ? 'bg-gray-900 text-white border-gray-900 shadow-md transform scale-105'
+        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`;
+}
+
 function updateChipStyles(container, selectedValue, allLabel) {
     if (!container) return;
     Array.from(container.children).forEach(btn => {
         const label = btn.textContent;
-        // Simple check against label or 'iPhone ' prefix logic
         const isSelected = (label === selectedValue.replace('iPhone ', '')) || (label === allLabel && selectedValue === 'All') || (label === selectedValue);
-
-        btn.className = `whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-bold transition-all border ${isSelected
-            ? 'bg-gray-900 text-white border-gray-900 shadow-md transform scale-105'
-            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-            }`;
+        btn.className = getChipClass(isSelected);
     });
 }
 
 function markLowestPrices(items) {
-    // Group by Model + Storage
     const groups = {};
     items.forEach(item => {
         const key = `${item.model}-${item.storage}`;
@@ -164,7 +283,6 @@ function markLowestPrices(items) {
     });
 
     Object.values(groups).forEach(group => {
-        if (group.length === 0) return;
         if (group.length === 0) return;
         const minPrice = Math.min(...group.map(i => priceMode === 'rent' ? i.price_effective_rent : i.price_gross));
         group.forEach(item => {
@@ -177,36 +295,23 @@ function markLowestPrices(items) {
 function setPriceMode(mode) {
     priceMode = mode;
 
-    // Toggle Animation & Text Colors
     const toggleBg = document.getElementById('toggle-bg');
     const modeRentBtn = document.getElementById('mode-rent');
     const modeBuyoutBtn = document.getElementById('mode-buyout');
 
     if (toggleBg && modeRentBtn && modeBuyoutBtn) {
         if (mode === 'rent') {
-            // Slide Left
             toggleBg.classList.remove('translate-x-full');
-
-            // Text Colors
             modeRentBtn.classList.remove('text-gray-500');
             modeRentBtn.classList.add('text-black');
-
             modeBuyoutBtn.classList.remove('text-black');
             modeBuyoutBtn.classList.add('text-gray-500');
-
-            if (thPriceDisplay) thPriceDisplay.textContent = "実質負担額";
         } else {
-            // Slide Right
             toggleBg.classList.add('translate-x-full');
-
-            // Text Colors
             modeRentBtn.classList.remove('text-black');
             modeRentBtn.classList.add('text-gray-500');
-
             modeBuyoutBtn.classList.remove('text-gray-500');
             modeBuyoutBtn.classList.add('text-black');
-
-            if (thPriceDisplay) thPriceDisplay.textContent = "一括価格";
         }
     }
 
@@ -215,7 +320,6 @@ function setPriceMode(mode) {
 }
 
 function render() {
-    // Filter
     let filtered = allData.filter(item => {
         if (!carriers.includes(item.carrier)) return false;
         if (selectedModel !== 'All' && item.model !== selectedModel) return false;
@@ -223,10 +327,8 @@ function render() {
         return true;
     });
 
-    // Sort
     filtered.sort((a, b) => {
         if (sortOrder === 'model_newest') {
-            // Extract model number for sorting (iPhone 16 > 15 ...) - SE last
             const getNum = (s) => {
                 if (s.includes('SE')) return -1;
                 const match = s.match(/iPhone\s*(\d+)/);
@@ -234,17 +336,15 @@ function render() {
             };
             const numA = getNum(a.model);
             const numB = getNum(b.model);
-            if (numA !== numB) return numB - numA; // Descending
+            if (numA !== numB) return numB - numA;
             return a.model.localeCompare(b.model);
         } else {
-            // Price Sort
             const valA = priceMode === 'rent' ? a.price_effective_rent : a.price_gross;
             const valB = priceMode === 'rent' ? b.price_effective_rent : b.price_gross;
             return sortOrder === 'price_asc' ? valA - valB : valB - valA;
         }
     });
 
-    // Clear
     if (mobileListEl) mobileListEl.innerHTML = '';
 
     if (filtered.length === 0) {
@@ -257,12 +357,11 @@ function render() {
     }
 
     filtered.forEach(item => {
-        const imgUrl = getProductImage(item.model);
-        // const carrierClass = getCarrierColor(item.carrier); // Removed
+        const imgUrl = getProductImage(item.model); // This is placeholder, no change needed
         const carrierName = getCarrierDisplayName(item.carrier);
+        const carrierLogo = getCarrierLogoPath(item.carrier);
         const isLowest = item.isLowest;
 
-        // Values
         let displayPrice, displayLabel, unitBadge = '';
         if (priceMode === 'rent') {
             displayPrice = item.price_effective_rent;
@@ -271,23 +370,18 @@ function render() {
         } else {
             displayPrice = item.price_gross;
             displayLabel = '一括価格';
-            // if (item.points_awarded > 0) unitBadge = 'Pt還元含'; // Usually for effective buyout, but user asked for Gross. Keeping simple.
         }
 
         const fmtPrice = displayPrice.toLocaleString();
-
-        // --- Mobile Card (Premium Design) ---
         const lowestBadge = isLowest ? `<div class="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-[10px] font-black px-2 py-0.5 rounded shadow-sm z-10">最安</div>` : '';
 
         const cardHTML = `
         <div class="flex flex-col gap-3 p-5 border border-gray-100 rounded-2xl bg-white shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-blue-200 transition-all duration-300 relative overflow-hidden group">
             ${lowestBadge}
             <div class="flex gap-4 items-start">
-                <!-- Image -->
                 <div class="w-20 h-24 flex-shrink-0 bg-gray-50 rounded-xl flex items-center justify-center p-2 group-hover:bg-blue-50/50 transition-colors">
                     <img src="${imgUrl}" class="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-110">
                 </div>
-                <!-- Header Info & Price -->
                 <div class="flex-grow min-w-0">
                     <div class="flex justify-between items-start mb-2">
                         <div>
@@ -296,10 +390,8 @@ function render() {
                                     <span class="text-[10px] font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">${item.storage}</span>
                             </div>
                         </div>
-                        <img src="${getCarrierLogoPath(item.carrier)}" alt="${carrierName}" class="h-6 w-auto object-contain object-right opacity-80 group-hover:opacity-100 transition-opacity">
+                        <img src="${carrierLogo}" alt="${carrierName}" class="h-6 w-auto object-contain object-right opacity-80 group-hover:opacity-100 transition-opacity">
                     </div>
-                    
-                    <!-- Price Block -->
                     <div class="mt-3">
                         <div class="flex items-baseline gap-1">
                             <span class="text-xs text-gray-400 font-bold">${displayLabel}</span>
@@ -309,23 +401,20 @@ function render() {
                     </div>
                 </div>
             </div>
-        
-            <!-- Action -->
             <a href="${item.url}" target="_blank" class="block w-full bg-slate-900 text-white text-center text-sm font-bold py-3 rounded-xl shadow-lg shadow-slate-200 hover:bg-slate-800 hover:shadow-xl transition active:scale-95 flex items-center justify-center gap-2 group/btn">
                 公式サイトで見る
                 <svg class="w-4 h-4 transition-transform group-hover/btn:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
             </a>
         </div>
         `;
-        if (mobileListEl) mobileListEl.insertAdjacentHTML('beforeend', cardHTML);
-
+        mobileListEl.insertAdjacentHTML('beforeend', cardHTML);
     });
 }
 
 function getCarrierLogoPath(carrier) {
-    if (carrier === 'Rakuten') return './images/logo_rakuten.png';
-    if (carrier === 'ahamo') return './images/logo_ahamo.png';
-    if (carrier === 'UQ mobile') return './images/logo_uq.png';
+    if (carrier === 'Rakuten') return BASE_URL + 'images/logo_rakuten.png';
+    if (carrier === 'ahamo') return BASE_URL + 'images/logo_ahamo.png';
+    if (carrier === 'UQ mobile') return BASE_URL + 'images/logo_uq.png';
     return '';
 }
 
