@@ -1,5 +1,5 @@
 {
-  "updated_at": "2025-12-22 01:25",
+  "updated_at": "2025-12-23 01:22",
   "items": [
     {
       "carrier": "Rakuten",
@@ -526,45 +526,6 @@
       "discount_official": 0,
       "points_awarded": 0,
       "program_exemption": 79304,
-      "variants": []
-    },
-    {
-      "carrier": "Rakuten",
-      "model": "iPhone SE（第3世代）",
-      "storage": "64GB",
-      "price_gross": 64000,
-      "price_effective_rent": 31992,
-      "price_effective_buyout": 64000,
-      "url": "https://network.mobile.rakuten.co.jp/product/iphone/fee/",
-      "discount_official": 0,
-      "points_awarded": 0,
-      "program_exemption": 32008,
-      "variants": []
-    },
-    {
-      "carrier": "Rakuten",
-      "model": "iPhone SE（第3世代）",
-      "storage": "128GB",
-      "price_gross": 70900,
-      "price_effective_rent": 35448,
-      "price_effective_buyout": 70900,
-      "url": "https://network.mobile.rakuten.co.jp/product/iphone/fee/",
-      "discount_official": 0,
-      "points_awarded": 0,
-      "program_exemption": 35452,
-      "variants": []
-    },
-    {
-      "carrier": "Rakuten",
-      "model": "iPhone SE（第3世代）",
-      "storage": "256GB",
-      "price_gross": 85900,
-      "price_effective_rent": 42960,
-      "price_effective_buyout": 85900,
-      "url": "https://network.mobile.rakuten.co.jp/product/iphone/fee/",
-      "discount_official": 0,
-      "points_awarded": 0,
-      "program_exemption": 42940,
       "variants": []
     },
     {
