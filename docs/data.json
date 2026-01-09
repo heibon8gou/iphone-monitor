@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-01-08 01:25",
+  "updated_at": "2026-01-09 01:24",
   "items": [
     {
       "carrier": "Rakuten",
@@ -533,11 +533,11 @@
       "model": "iPhone 17 Pro",
       "storage": "128GB",
       "price_gross": 214940,
-      "discount_official": 0,
+      "discount_official": 44000,
       "program_exemption": 110880,
       "points_awarded": 0,
-      "price_effective_rent": 104060,
-      "price_effective_buyout": 214940,
+      "price_effective_rent": 60060,
+      "price_effective_buyout": 170940,
       "variants": [],
       "url": "https://ahamo.com/products/iphone/"
     },
@@ -546,11 +546,11 @@
       "model": "iPhone 17 Pro Max",
       "storage": "128GB",
       "price_gross": 240900,
-      "discount_official": 0,
+      "discount_official": 44000,
       "program_exemption": 121440,
       "points_awarded": 0,
-      "price_effective_rent": 119460,
-      "price_effective_buyout": 240900,
+      "price_effective_rent": 75460,
+      "price_effective_buyout": 196900,
       "variants": [],
       "url": "https://ahamo.com/products/iphone/"
     },
