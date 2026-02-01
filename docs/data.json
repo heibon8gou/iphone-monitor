@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-01-31 01:44",
+  "updated_at": "2026-02-01 02:03",
   "items": [
     {
       "carrier": "Rakuten",
@@ -637,12 +637,12 @@
       "carrier": "UQ mobile",
       "model": "iPhone 16e",
       "storage": "128GB",
-      "price_gross": 112800,
+      "price_gross": 22000,
       "discount_official": 22000,
       "program_exemption": 0,
       "points_awarded": 0,
-      "price_effective_rent": 90800,
-      "price_effective_buyout": 90800,
+      "price_effective_rent": 0,
+      "price_effective_buyout": 0,
       "variants": [],
       "url": "https://www.uqwimax.jp/mobile/iphone/16e/"
     },
