@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-02-14 01:49",
+  "updated_at": "2026-02-15 01:58",
   "items": [
     {
       "carrier": "Rakuten",
@@ -712,19 +712,6 @@
     },
     {
       "carrier": "UQ mobile",
-      "model": "iPhone 16",
-      "storage": "128GB",
-      "price_gross": 146000,
-      "discount_official": 22000,
-      "program_exemption": 0,
-      "points_awarded": 0,
-      "price_effective_rent": 124000,
-      "price_effective_buyout": 124000,
-      "variants": [],
-      "url": "https://www.uqwimax.jp/mobile/iphone/16/"
-    },
-    {
-      "carrier": "UQ mobile",
       "model": "iPhone 16e",
       "storage": "128GB",
       "price_gross": 112800,
@@ -735,6 +722,19 @@
       "price_effective_buyout": 90800,
       "variants": [],
       "url": "https://www.uqwimax.jp/mobile/iphone/16e/"
+    },
+    {
+      "carrier": "UQ mobile",
+      "model": "iPhone 16",
+      "storage": "128GB",
+      "price_gross": 146000,
+      "discount_official": 22000,
+      "program_exemption": 0,
+      "points_awarded": 0,
+      "price_effective_rent": 124000,
+      "price_effective_buyout": 124000,
+      "variants": [],
+      "url": "https://www.uqwimax.jp/mobile/iphone/16/"
     }
   ]
 }
